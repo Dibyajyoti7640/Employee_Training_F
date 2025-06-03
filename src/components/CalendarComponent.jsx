@@ -1,23 +1,9 @@
-import React, { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  X,
-  Clock,
-  ChevronDown,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Plus, X, Clock } from "lucide-react";
 
 const CalendarComponent = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState([
-    { id: 1, title: "Morning Meeting", date: "2025-06-02", time: "09:00" },
-    { id: 2, title: "Project Review", date: "2025-06-02", time: "10:30" },
-    { id: 3, title: "Client Call", date: "2025-06-02", time: "14:00" },
-    { id: 4, title: "Team Standup", date: "2025-06-02", time: "16:30" },
-    { id: 5, title: "Design Review", date: "2025-06-03", time: "11:00" },
-    { id: 6, title: "Lunch Meeting", date: "2025-06-03", time: "12:30" },
-  ]);
+  const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
@@ -27,6 +13,90 @@ const CalendarComponent = () => {
   const [selectedHour, setSelectedHour] = useState(12);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [isAM, setIsAM] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const API_URL = "https://localhost:7289/api/Calendars";
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(API_URL);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch events");
+      }
+      const data = await response.json();
+      console.log("Fetched events:", data);
+
+      // Transform API response to match component expectations
+      const normalizedEvents = data.map((event) => ({
+        id: event.id,
+        title: event.meetingName || "Untitled Event",
+        date: event.date
+          ? normalizeDate(event.date)
+          : normalizeDate(event.time),
+        time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
+        meetingLink: event.teamsLink || "",
+      }));
+
+      setEvents(normalizedEvents);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching events:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to extract time from datetime string
+  const extractTimeFromDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return "00:00";
+
+    try {
+      const date = new Date(dateTimeStr);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Error extracting time:", error);
+      return "00:00";
+    }
+  };
+
+  // Function to normalize date format
+  const normalizeDate = (dateStr) => {
+    if (!dateStr) return null;
+
+    try {
+      let date;
+      if (dateStr.includes("T")) {
+        // ISO format with time
+        date = new Date(dateStr);
+      } else if (dateStr.includes("-")) {
+        // YYYY-MM-DD format
+        date = new Date(dateStr + "T00:00:00");
+      } else {
+        // Try to parse as is
+        date = new Date(dateStr);
+      }
+
+      // Return in YYYY-MM-DD format
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error("Error normalizing date:", error);
+      return null;
+    }
+  };
 
   const months = [
     "January",
@@ -43,6 +113,16 @@ const CalendarComponent = () => {
     "December",
   ];
 
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
   const getEventColor = (events, index) => {
     const colors = [
       "bg-purple-100 text-purple-800 border-purple-200",
@@ -54,16 +134,6 @@ const CalendarComponent = () => {
     ];
     return colors[index % colors.length];
   };
-
-  const daysOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -80,9 +150,15 @@ const CalendarComponent = () => {
   };
 
   const getEventsForDate = (dateStr) => {
-    return events
-      .filter((event) => event.date === dateStr)
-      .sort((a, b) => a.time.localeCompare(b.time));
+    const filteredEvents = events.filter((event) => {
+      return event.date === dateStr;
+    });
+
+    return filteredEvents.sort((a, b) => {
+      const timeA = a.time || "00:00";
+      const timeB = b.time || "00:00";
+      return timeA.localeCompare(timeB);
+    });
   };
 
   const handlePreviousMonth = () => {
@@ -107,24 +183,81 @@ const CalendarComponent = () => {
     setShowModal(true);
   };
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (eventTitle.trim() && eventTime.trim() && selectedDate) {
+      // Create datetime string from selected date and time
+      const [hours, minutes] = eventTime.split(":");
+      const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
+
       const newEvent = {
-        id: Date.now(),
-        title: eventTitle.trim(),
+        meetingName: eventTitle.trim(),
         date: selectedDate,
-        time: eventTime,
+        time: eventDateTime.toISOString(),
+        teamsLink: meetingLink.trim() || null,
       };
-      setEvents([...events, newEvent]);
-      setEventTitle("");
-      setEventTime("");
-      setShowModal(false);
-      setShowClock(false);
+
+      try {
+        setIsLoading(true);
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newEvent),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to add event");
+        }
+
+        const createdEvent = await response.json();
+
+        // Transform the response to match component expectations
+        const normalizedEvent = {
+          id: createdEvent.id,
+          title: createdEvent.meetingName || eventTitle.trim(),
+          date: createdEvent.date
+            ? normalizeDate(createdEvent.date)
+            : selectedDate,
+          time: createdEvent.time
+            ? extractTimeFromDateTime(createdEvent.time)
+            : eventTime,
+          meetingLink: createdEvent.teamsLink || meetingLink.trim(),
+        };
+
+        setEvents([...events, normalizedEvent]);
+        setEventTitle("");
+        setEventTime("");
+        setMeetingLink("");
+        setShowModal(false);
+        setShowClock(false);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error adding event:", err);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleDeleteEvent = (eventId) => {
-    setEvents(events.filter((event) => event.id !== eventId));
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_URL}/${eventId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete event");
+      }
+
+      setEvents(events.filter((event) => event.id !== eventId));
+    } catch (err) {
+      setError(err.message);
+      console.error("Error deleting event:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatDateDisplay = (dateStr) => {
@@ -139,7 +272,9 @@ const CalendarComponent = () => {
 
   const handleClockTimeSelect = () => {
     const hours = isAM
-      ? selectedHour
+      ? selectedHour === 12
+        ? 0
+        : selectedHour
       : selectedHour === 12
       ? 12
       : selectedHour + 12;
@@ -170,8 +305,7 @@ const CalendarComponent = () => {
           </div>
 
           <div className="flex justify-center mb-6">
-            <div className="relative w-55 h-55    rounded-full border-2 border-purple-200 bg-purple-50">
-              {/* Hour markers */}
+            <div className="relative w-52 h-52 rounded-full border-2 border-purple-200 bg-purple-50">
               {hours.map((hour, index) => {
                 const angle = index * 30 - 90;
                 const x = 50 + 40 * Math.cos((angle * Math.PI) / 180);
@@ -180,7 +314,7 @@ const CalendarComponent = () => {
                 return (
                   <button
                     key={`hour-${hour}`}
-                    className={`absolute w-7 h-7  flex items-center justify-center rounded-full transition-all ${
+                    className={`absolute w-7 h-7 flex items-center justify-center rounded-full transition-all ${
                       selectedHour === hour
                         ? "bg-purple-600 text-white"
                         : "hover:bg-purple-100 text-purple-800"
@@ -197,7 +331,6 @@ const CalendarComponent = () => {
                 );
               })}
 
-              {/* Minute markers (inner circle) */}
               {minutes.map((minute, index) => {
                 const angle = index * 30 - 90;
                 const x = 50 + 20 * Math.cos((angle * Math.PI) / 180);
@@ -223,7 +356,6 @@ const CalendarComponent = () => {
                 );
               })}
 
-              {/* Center dot */}
               <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-purple-600 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
@@ -268,7 +400,6 @@ const CalendarComponent = () => {
     const firstDay = getFirstDayOfMonth(currentDate);
     const days = [];
 
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(
         <div
@@ -278,7 +409,6 @@ const CalendarComponent = () => {
       );
     }
 
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = formatDate(
         currentDate.getFullYear(),
@@ -305,10 +435,9 @@ const CalendarComponent = () => {
           onClick={() => handleDateClick(day)}
         >
           <div className="h-full flex flex-col">
-            {/* Day number header */}
             <div
               className={`p-2 border-b border-purple-100 ${
-                isToday ? "bg-purple-400" : "bg-gray-50"
+                isToday ? "bg-purple-100" : "bg-gray-50"
               }`}
             >
               <span
@@ -325,7 +454,6 @@ const CalendarComponent = () => {
               )}
             </div>
 
-            {/* Scrollable events area */}
             <div className="flex-1 p-1 overflow-y-auto scrollbar-hide">
               <div className="space-y-1">
                 {dayEvents.map((event, index) => (
@@ -366,7 +494,19 @@ const CalendarComponent = () => {
           display: none;
         }
       `}</style>
-      {/* Header */}
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <span className="block sm:inline">{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="absolute top-0 right-0 px-4 py-3"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-purple-100">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -394,7 +534,6 @@ const CalendarComponent = () => {
           </div>
         </div>
 
-        {/* Days of week header */}
         <div className="grid grid-cols-7 gap-0 mb-4">
           {daysOfWeek.map((day) => (
             <div
@@ -406,15 +545,13 @@ const CalendarComponent = () => {
           ))}
         </div>
 
-        {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-0 border-2 border-purple-200 rounded-xl overflow-hidden shadow-inner">
           {renderCalendarDays()}
         </div>
       </div>
 
-      {/* Event Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-purple-100">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -437,14 +574,13 @@ const CalendarComponent = () => {
               </button>
             </div>
 
-            {/* Existing events for the date */}
             {selectedDate && getEventsForDate(selectedDate).length > 0 && (
               <div className="mb-6">
                 <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   <Clock size={16} className="mr-2" />
                   Existing Events
                 </h4>
-                <div className="space-y-2 max-h-25 overflow-y-auto scrollbar-hide">
+                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-hide">
                   {getEventsForDate(selectedDate).map((event, index) => (
                     <div
                       key={event.id}
@@ -459,6 +595,18 @@ const CalendarComponent = () => {
                           <Clock size={12} className="mr-1" />
                           {event.time}
                         </div>
+                        {event.meetingLink && (
+                          <div className="text-xs mt-1 truncate">
+                            <a
+                              href={event.meetingLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              Meeting Link
+                            </a>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleDeleteEvent(event.id)}
@@ -516,25 +664,37 @@ const CalendarComponent = () => {
                   type="text"
                   value={meetingLink}
                   onChange={(e) => setMeetingLink(e.target.value)}
+                  placeholder="https://teams.microsoft.com/l/meetup-join/..."
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
+
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={handleAddEvent}
-                  disabled={!eventTitle.trim() || !eventTime.trim()}
+                  disabled={
+                    !eventTitle.trim() || !eventTime.trim() || isLoading
+                  }
                   className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-300 disabled:to-indigo-300 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:shadow-none"
                 >
-                  <Plus size={18} />
-                  <span>Add Event</span>
+                  {isLoading ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Plus size={18} />
+                      <span>Add Event</span>
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => {
                     setShowModal(false);
                     setEventTitle("");
                     setEventTime("");
+                    setMeetingLink("");
                     setShowClock(false);
                   }}
+                  disabled={isLoading}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-200"
                 >
                   Cancel
@@ -545,7 +705,6 @@ const CalendarComponent = () => {
         </div>
       )}
 
-      {/* Clock Picker Modal */}
       {showClock && renderClock()}
     </div>
   );
