@@ -47,6 +47,7 @@ const CalendarComponent = () => {
       console.error("Error fetching events:", err);
     } finally {
       setIsLoading(false);
+      console.log("heil hitler");
     }
   };
 
