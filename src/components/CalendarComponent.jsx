@@ -27,7 +27,7 @@ const CalendarComponent = () => {
     setError(null);
     try {
       const response = await fetch(API_URL);
-
+      console.log("Fetching events from API:", API_URL);
       if (!response.ok) {
         throw new Error("Failed to fetch events");
       }
