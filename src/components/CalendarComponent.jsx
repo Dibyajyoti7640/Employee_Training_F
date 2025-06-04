@@ -25,13 +25,8 @@ const CalendarComponent = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(API_URL);
-      console.log("Fetching events from API:", API_URL);
-      if (!response.ok) {
-        throw new Error("Failed to fetch events");
-      }
-      const data = await response.json();
-      console.log("Fetched events:", data);
+      const response = await api.get("/Calendars");
+      console.log("Fetched events:", response.data);
 
       // Transform API response to match component expectations
       const normalizedEvents = response.data.map((event) => ({
