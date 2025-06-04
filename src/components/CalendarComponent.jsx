@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Clock } from "lucide-react";
+import api from "../services/api";
 
 const CalendarComponent = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -15,8 +16,6 @@ const CalendarComponent = () => {
   const [isAM, setIsAM] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const API_URL = "https://localhost:7289/api/Calendars";
 
   useEffect(() => {
     fetchEvents();
@@ -35,7 +34,7 @@ const CalendarComponent = () => {
       console.log("Fetched events:", data);
 
       // Transform API response to match component expectations
-      const normalizedEvents = data.map((event) => ({
+      const normalizedEvents = response.data.map((event) => ({
         id: event.id,
         title: event.meetingName || "Untitled Event",
         date: event.date
@@ -47,7 +46,9 @@ const CalendarComponent = () => {
 
       setEvents(normalizedEvents);
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.response?.data?.message || err.message || "Failed to fetch events"
+      );
       console.error("Error fetching events:", err);
     } finally {
       setIsLoading(false);
@@ -198,31 +199,19 @@ const CalendarComponent = () => {
 
       try {
         setIsLoading(true);
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newEvent),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to add event");
-        }
-
-        const createdEvent = await response.json();
+        const response = await api.post("/Calendars", newEvent);
 
         // Transform the response to match component expectations
         const normalizedEvent = {
-          id: createdEvent.id,
-          title: createdEvent.meetingName || eventTitle.trim(),
-          date: createdEvent.date
-            ? normalizeDate(createdEvent.date)
+          id: response.data.id,
+          title: response.data.meetingName || eventTitle.trim(),
+          date: response.data.date
+            ? normalizeDate(response.data.date)
             : selectedDate,
-          time: createdEvent.time
-            ? extractTimeFromDateTime(createdEvent.time)
+          time: response.data.time
+            ? extractTimeFromDateTime(response.data.time)
             : eventTime,
-          meetingLink: createdEvent.teamsLink || meetingLink.trim(),
+          meetingLink: response.data.teamsLink || meetingLink.trim(),
         };
 
         setEvents([...events, normalizedEvent]);
@@ -232,7 +221,9 @@ const CalendarComponent = () => {
         setShowModal(false);
         setShowClock(false);
       } catch (err) {
-        setError(err.message);
+        setError(
+          err.response?.data?.message || err.message || "Failed to add event"
+        );
         console.error("Error adding event:", err);
       } finally {
         setIsLoading(false);
@@ -243,17 +234,13 @@ const CalendarComponent = () => {
   const handleDeleteEvent = async (eventId) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_URL}/${eventId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete event");
-      }
+      await api.delete(`/Calendars/${eventId}`);
 
       setEvents(events.filter((event) => event.id !== eventId));
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.response?.data?.message || err.message || "Failed to delete event"
+      );
       console.error("Error deleting event:", err);
     } finally {
       setIsLoading(false);
