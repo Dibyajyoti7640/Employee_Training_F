@@ -27,10 +27,7 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Login />} />
-
-        {/* Dashboard with nested routes */}
         <Route path="/dashboard" element={<Dashboard />}>
-          {/* Admin Routes */}
           <Route
             path="admin/courses"
             element={
@@ -63,7 +60,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {/* Manager Routes */}
           <Route
             path="manager/courses"
             element={
@@ -96,7 +92,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {/* Employee Routes */}
           <Route
             path="employee/courses"
             element={
@@ -130,7 +125,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {/* Calendar Route */}
           <Route path="calendar" element={<CalendarComponent />} />
         </Route>
       </Routes>
