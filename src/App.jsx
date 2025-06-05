@@ -27,107 +27,114 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route
-          path="admin/courses"
-          element={
-            <PrivateRoute role="Admin">
-              <AdminCourses />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="admin/employees"
-          element={
-            <PrivateRoute role="Admin">
-              <AdminEmployees />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="admin/quizzes"
-          element={
-            <PrivateRoute role="Admin">
-              <AdminQuizzes />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="admin/responses"
-          element={
-            <PrivateRoute role="Admin">
-              <AdminQuizResponses />
-            </PrivateRoute>
-          }
-        />
+        {/* Dashboard with nested routes */}
+        <Route path="/dashboard" element={<Dashboard />}>
+          {/* Admin Routes */}
+          <Route
+            path="admin/courses"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminCourses />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="admin/employees"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminEmployees />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="admin/quizzes"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminQuizzes />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="admin/responses"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminQuizResponses />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="manager/courses"
-          element={
-            <PrivateRoute role="Manager">
-              <ManagerCourses />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="manager/employees"
-          element={
-            <PrivateRoute role="Manager">
-              <ManagerEmployees />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="manager/quizzes"
-          element={
-            <PrivateRoute role="Manager">
-              <ManagerQuizzes />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="manager/responses"
-          element={
-            <PrivateRoute role="Manager">
-              <ManagerQuizResponses />
-            </PrivateRoute>
-          }
-        />
+          {/* Manager Routes */}
+          <Route
+            path="manager/courses"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerCourses />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="manager/employees"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerEmployees />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="manager/quizzes"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerQuizzes />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="manager/responses"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerQuizResponses />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="employee/courses"
-          element={
-            <PrivateRoute role="Employee">
-              <EmployeeCourses />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="employee/register"
-          element={
-            <PrivateRoute role="Employee">
-              <EmployeeRegister />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="employee/progress"
-          element={
-            <PrivateRoute role="Employee">
-              <EmployeeProgress />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="employee/quizzes"
-          element={
-            <PrivateRoute role="Employee">
-              <EmployeeQuiz />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/calendar" element={<CalendarComponent />} />
+          {/* Employee Routes */}
+          <Route
+            path="employee/courses"
+            element={
+              <PrivateRoute role="Employee">
+                <EmployeeCourses />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="employee/register"
+            element={
+              <PrivateRoute role="Employee">
+                <EmployeeRegister />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="employee/progress"
+            element={
+              <PrivateRoute role="Employee">
+                <EmployeeProgress />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="employee/quizzes"
+            element={
+              <PrivateRoute role="Employee">
+                <EmployeeQuiz />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Calendar Route */}
+          <Route path="calendar" element={<CalendarComponent />} />
+        </Route>
       </Routes>
     </AuthProvider>
   );
