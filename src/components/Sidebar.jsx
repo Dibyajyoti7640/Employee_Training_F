@@ -25,61 +25,57 @@ const Sidebar = ({ collapsed = false }) => {
     const links = {
       Admin: [
         {
-          to: "/admin/courses",
+          to: "admin/courses",
           label: "Manage Courses",
           icon: <BookOpen size={20} />,
         },
         {
-          to: "/admin/employees",
+          to: "admin/employees",
           label: "Employee List",
           icon: <Users size={20} />,
         },
-        { to: "/admin/quizzes", label: "Quiz", icon: <FileText size={20} /> },
+        { to: "admin/quizzes", label: "Quiz", icon: <FileText size={20} /> },
         {
-          to: "/admin/responses",
+          to: "admin/responses",
           label: "View Quiz",
           icon: <Briefcase size={20} />,
         },
       ],
       Manager: [
         {
-          to: "/manager/courses",
+          to: "manager/courses",
           label: "Manage Courses",
           icon: <BookOpen size={20} />,
         },
         {
-          to: "/manager/employees",
+          to: "manager/employees",
           label: "Employee Progress",
           icon: <BarChart2 size={20} />,
         },
-        { to: "/manager/quizzes", label: "Quiz", icon: <FileText size={20} /> },
+        { to: "manager/quizzes", label: "Quiz", icon: <FileText size={20} /> },
         {
-          to: "/manager/responses",
+          to: "manager/responses",
           label: "View Quiz",
           icon: <Briefcase size={20} />,
         },
       ],
       Employee: [
         {
-          to: "/employee/courses",
+          to: "employee/courses",
           label: "Courses",
           icon: <BookOpen size={20} />,
         },
         {
-          to: "/employee/register",
+          to: "employee/register",
           label: "Register",
           icon: <UserCheck size={20} />,
         },
         {
-          to: "/employee/progress",
+          to: "employee/progress",
           label: "Progress",
           icon: <BarChart2 size={20} />,
         },
-        {
-          to: "/employee/quizzes",
-          label: "Quiz",
-          icon: <FileText size={20} />,
-        },
+        { to: "employee/quizzes", label: "Quiz", icon: <FileText size={20} /> },
       ],
     };
 
