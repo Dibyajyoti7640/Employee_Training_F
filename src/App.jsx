@@ -63,7 +63,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           {/* Manager Routes */}
           <Route
             path="manager/courses"
@@ -97,7 +96,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           {/* Employee Routes */}
           <Route
             path="employee/courses"
@@ -115,6 +113,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          {console.log("something")};
           <Route
             path="employee/progress"
             element={
@@ -131,7 +130,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           {/* Calendar Route */}
           <Route path="calendar" element={<CalendarComponent />} />
         </Route>
