@@ -30,7 +30,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route
-          path="admin/courses"
+          path="/admin/courses"
           element={
             <PrivateRoute role="Admin">
               <AdminCourses />
@@ -38,7 +38,7 @@ function App() {
           }
         />
         <Route
-          path="admin/employees"
+          path="/admin/employees"
           element={
             <PrivateRoute role="Admin">
               <AdminEmployees />
@@ -46,7 +46,7 @@ function App() {
           }
         />
         <Route
-          path="admin/quizzes"
+          path="/admin/quizzes"
           element={
             <PrivateRoute role="Admin">
               <AdminQuizzes />
@@ -54,7 +54,7 @@ function App() {
           }
         />
         <Route
-          path="admin/responses"
+          path="/admin/responses"
           element={
             <PrivateRoute role="Admin">
               <AdminQuizResponses />
@@ -63,7 +63,7 @@ function App() {
         />
 
         <Route
-          path="manager/courses"
+          path="/manager/courses"
           element={
             <PrivateRoute role="Manager">
               <ManagerCourses />
@@ -71,7 +71,7 @@ function App() {
           }
         />
         <Route
-          path="manager/employees"
+          path="/manager/employees"
           element={
             <PrivateRoute role="Manager">
               <ManagerEmployees />
@@ -79,7 +79,7 @@ function App() {
           }
         />
         <Route
-          path="manager/quizzes"
+          path="/manager/quizzes"
           element={
             <PrivateRoute role="Manager">
               <ManagerQuizzes />
@@ -87,7 +87,7 @@ function App() {
           }
         />
         <Route
-          path="manager/responses"
+          path="/manager/responses"
           element={
             <PrivateRoute role="Manager">
               <ManagerQuizResponses />
@@ -96,7 +96,7 @@ function App() {
         />
 
         <Route
-          path="employee/courses"
+          path="/employee/courses"
           element={
             <PrivateRoute role="Employee">
               <EmployeeCourses />
@@ -104,7 +104,7 @@ function App() {
           }
         />
         <Route
-          path="employee/register"
+          path="/employee/register"
           element={
             <PrivateRoute role="Employee">
               <EmployeeRegister />
@@ -112,7 +112,7 @@ function App() {
           }
         />
         <Route
-          path="employee/progress"
+          path="/employee/progress"
           element={
             <PrivateRoute role="Employee">
               <EmployeeProgress />
@@ -120,7 +120,7 @@ function App() {
           }
         />
         <Route
-          path="employee/quizzes"
+          path="/employee/quizzes"
           element={
             <PrivateRoute role="Employee">
               <EmployeeQuiz />
