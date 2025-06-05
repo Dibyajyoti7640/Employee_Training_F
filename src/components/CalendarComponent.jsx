@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Plus, X, Clock } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  X,
+  Clock,
+  Users,
+  MapPin,
+  User,
+  FileText,
+} from "lucide-react";
 import api from "../services/api";
 
 const CalendarComponent = () => {
@@ -7,9 +17,16 @@ const CalendarComponent = () => {
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
+  const [trainer, setTrainer] = useState("");
+  const [organiser, setOrganiser] = useState("");
+  const [venue, setVenue] = useState("");
+  const [endingDate, setEndingDate] = useState("");
   const [showClock, setShowClock] = useState(false);
   const [selectedHour, setSelectedHour] = useState(12);
   const [selectedMinute, setSelectedMinute] = useState(0);
@@ -32,11 +49,15 @@ const CalendarComponent = () => {
       const normalizedEvents = response.data.map((event) => ({
         id: event.id,
         title: event.meetingName || "Untitled Event",
-        date: event.date
-          ? normalizeDate(event.date)
-          : normalizeDate(event.time),
+        date: event.startingDate || normalizeDate(event.time),
         time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
         meetingLink: event.teamsLink || "",
+        trainer: event.trainer || "",
+        organiser: event.organiser || "",
+        venue: event.venue || "",
+        endingDate:
+          event.endingDate || event.startingDate || normalizeDate(event.time),
+        rawData: event, // Store the raw data for details view
       }));
 
       setEvents(normalizedEvents);
@@ -50,7 +71,6 @@ const CalendarComponent = () => {
     }
   };
 
-  // Function to extract time from datetime string
   const extractTimeFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return "00:00";
 
@@ -65,24 +85,19 @@ const CalendarComponent = () => {
     }
   };
 
-  // Function to normalize date format
   const normalizeDate = (dateStr) => {
     if (!dateStr) return null;
 
     try {
       let date;
       if (dateStr.includes("T")) {
-        // ISO format with time
         date = new Date(dateStr);
       } else if (dateStr.includes("-")) {
-        // YYYY-MM-DD format
         date = new Date(dateStr + "T00:00:00");
       } else {
-        // Try to parse as is
         date = new Date(dateStr);
       }
 
-      // Return in YYYY-MM-DD format
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
@@ -147,7 +162,12 @@ const CalendarComponent = () => {
 
   const getEventsForDate = (dateStr) => {
     const filteredEvents = events.filter((event) => {
-      return event.date === dateStr;
+      const eventStartDate = new Date(event.date);
+      const eventEndDate = new Date(event.endingDate || event.date);
+      const currentDate = new Date(dateStr);
+
+      // Check if the date is between start and end dates (inclusive)
+      return currentDate >= eventStartDate && currentDate <= eventEndDate;
     });
 
     return filteredEvents.sort((a, b) => {
@@ -179,42 +199,50 @@ const CalendarComponent = () => {
     setShowModal(true);
   };
 
+  const handleEventClick = (event) => {
+    setSelectedEvent(event);
+    setShowEventDetails(true);
+  };
+
   const handleAddEvent = async () => {
     if (eventTitle.trim() && eventTime.trim() && selectedDate) {
-      // Create datetime string from selected date and time
       const [hours, minutes] = eventTime.split(":");
       const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
 
       const newEvent = {
         meetingName: eventTitle.trim(),
-        date: selectedDate,
         time: eventDateTime.toISOString(),
         teamsLink: meetingLink.trim() || null,
+        trainer: trainer.trim() || null,
+        organiser: organiser.trim() || null,
+        venue: venue.trim() || null,
+        startingDate: selectedDate,
+        endingDate: endingDate || selectedDate,
+        description: eventDescription,
       };
 
       try {
         setIsLoading(true);
         const response = await api.post("/Calendars", newEvent);
 
-        // Transform the response to match component expectations
         const normalizedEvent = {
           id: response.data.id,
           title: response.data.meetingName || eventTitle.trim(),
-          date: response.data.date
-            ? normalizeDate(response.data.date)
-            : selectedDate,
+          date: response.data.startingDate || selectedDate,
           time: response.data.time
             ? extractTimeFromDateTime(response.data.time)
             : eventTime,
           meetingLink: response.data.teamsLink || meetingLink.trim(),
+          trainer: response.data.trainer || trainer.trim(),
+          organiser: response.data.organiser || organiser.trim(),
+          venue: response.data.venue || venue.trim(),
+          endingDate: response.data.endingDate || endingDate || selectedDate,
+          rawData: response.data,
         };
 
         setEvents([...events, normalizedEvent]);
-        setEventTitle("");
-        setEventTime("");
-        setMeetingLink("");
+        resetForm();
         setShowModal(false);
-        setShowClock(false);
       } catch (err) {
         setError(
           err.response?.data?.message || err.message || "Failed to add event"
@@ -226,12 +254,23 @@ const CalendarComponent = () => {
     }
   };
 
+  const resetForm = () => {
+    setEventTitle("");
+    setEventTime("");
+    setMeetingLink("");
+    setTrainer("");
+    setOrganiser("");
+    setVenue("");
+    setEndingDate("");
+    setShowClock(false);
+  };
+
   const handleDeleteEvent = async (eventId) => {
     try {
       setIsLoading(true);
       await api.delete(`/Calendars/${eventId}`);
-
       setEvents(events.filter((event) => event.id !== eventId));
+      setShowEventDetails(false);
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || "Failed to delete event"
@@ -272,7 +311,7 @@ const CalendarComponent = () => {
     const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
     return (
-      <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl border border-purple-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-purple-800">
@@ -445,6 +484,10 @@ const CalendarComponent = () => {
                       dayEvents,
                       index
                     )}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEventClick(event);
+                    }}
                   >
                     <div className="flex items-center space-x-1 mb-0.5">
                       <Clock size={8} />
@@ -463,6 +506,141 @@ const CalendarComponent = () => {
     }
 
     return days;
+  };
+
+  const renderEventDetails = () => {
+    if (!selectedEvent) return null;
+
+    const event = selectedEvent.rawData || selectedEvent;
+    const eventDate = new Date(event.time || event.startingDate);
+    const formattedDate = eventDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const formattedTime = eventDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return (
+      <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto   max-w-md shadow-2xl border border-purple-100">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-purple-800">
+                {event.meetingName || "Event Details"}
+              </h3>
+              <p className="text-sm text-purple-600 mt-1">{formattedDate}</p>
+            </div>
+            <button
+              onClick={() => setShowEventDetails(false)}
+              className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="bg-purple-100 p-3 rounded-lg mr-4">
+                <Clock size={20} className="text-purple-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-500">Time</h4>
+                <p className="text-gray-800">{formattedTime}</p>
+              </div>
+            </div>
+
+            {event.trainer && (
+              <div className="flex items-start">
+                <div className="bg-indigo-100 p-3 rounded-lg mr-4">
+                  <User size={20} className="text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">
+                    Trainer
+                  </h4>
+                  <p className="text-gray-800">{event.trainer}</p>
+                </div>
+              </div>
+            )}
+
+            {event.organiser && (
+              <div className="flex items-start">
+                <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                  <Users size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">
+                    Organiser
+                  </h4>
+                  <p className="text-gray-800">{event.organiser}</p>
+                </div>
+              </div>
+            )}
+
+            {event.venue && (
+              <div className="flex items-start">
+                <div className="bg-teal-100 p-3 rounded-lg mr-4">
+                  <MapPin size={20} className="text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">Venue</h4>
+                  <p className="text-gray-800">{event.venue}</p>
+                </div>
+              </div>
+            )}
+            {event.description && (
+              <div className="flex items-start">
+                <div className="bg-gray-100 p-3 rounded-lg mr-4">
+                  <FileText size={20} className="text-gray-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-500">
+                    Description
+                  </h4>
+                  <p className="text-gray-800 whitespace-pre-line">
+                    {event.description}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {event.teamsLink && (
+              <div className="pt-4">
+                <a
+                  href={event.teamsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <span>Join Teams Meeting</span>
+                </a>
+              </div>
+            )}
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={() => handleDeleteEvent(event.id)}
+                disabled={isLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
+              >
+                {isLoading ? "Deleting..." : "Delete Event"}
+              </button>
+              <button
+                onClick={() => setShowEventDetails(false)}
+                disabled={isLoading}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -534,7 +712,7 @@ const CalendarComponent = () => {
 
       {showModal && (
         <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-purple-100">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-5xl h-auto max-h-[85vh]  scrollbar-hide overflow-y-auto scrollvar-hide shadow-2xl border border-purple-100">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-purple-800">Add Event</h3>
@@ -545,10 +723,7 @@ const CalendarComponent = () => {
               <button
                 onClick={() => {
                   setShowModal(false);
-                  setEventTitle("");
-                  setEventTime("");
-                  setMeetingLink("");
-                  setShowClock(false);
+                  resetForm();
                 }}
                 className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"
               >
@@ -570,6 +745,10 @@ const CalendarComponent = () => {
                         getEventsForDate(selectedDate),
                         index
                       )}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEventClick(event);
+                      }}
                     >
                       <div className="flex-1">
                         <div className="font-semibold">{event.title}</div>
@@ -577,21 +756,12 @@ const CalendarComponent = () => {
                           <Clock size={12} className="mr-1" />
                           {event.time}
                         </div>
-                        {event.meetingLink && (
-                          <div className="text-xs mt-1 truncate">
-                            <a
-                              href={event.meetingLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              Meeting Link
-                            </a>
-                          </div>
-                        )}
                       </div>
                       <button
-                        onClick={() => handleDeleteEvent(event.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteEvent(event.id);
+                        }}
                         className="p-1.5 rounded-lg hover:bg-white hover:bg-opacity-50 text-gray-600 hover:text-red-600 transition-colors"
                       >
                         <X size={16} />
@@ -640,6 +810,69 @@ const CalendarComponent = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Trainer
+                </label>
+                <input
+                  type="text"
+                  value={trainer}
+                  onChange={(e) => setTrainer(e.target.value)}
+                  placeholder="Enter trainer name"
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Organiser
+                </label>
+                <input
+                  type="text"
+                  value={organiser}
+                  onChange={(e) => setOrganiser(e.target.value)}
+                  placeholder="Enter organiser name"
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Venue
+                </label>
+                <input
+                  type="text"
+                  value={venue}
+                  onChange={(e) => setVenue(e.target.value)}
+                  placeholder="Enter venue"
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ending Date
+                </label>
+                <input
+                  type="date"
+                  value={endingDate}
+                  onChange={(e) => setEndingDate(e.target.value)}
+                  min={selectedDate}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={eventDescription}
+                  onChange={(e) => setEventDescription(e.target.value)}
+                  placeholder="Enter event description"
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  rows="3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Teams Link
                 </label>
                 <input
@@ -671,10 +904,7 @@ const CalendarComponent = () => {
                 <button
                   onClick={() => {
                     setShowModal(false);
-                    setEventTitle("");
-                    setEventTime("");
-                    setMeetingLink("");
-                    setShowClock(false);
+                    resetForm();
                   }}
                   disabled={isLoading}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold transition-all duration-200 border border-gray-200"
@@ -688,6 +918,7 @@ const CalendarComponent = () => {
       )}
 
       {showClock && renderClock()}
+      {showEventDetails && renderEventDetails()}
     </div>
   );
 };
