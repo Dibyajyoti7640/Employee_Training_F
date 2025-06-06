@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import { useAuth } from '../context/AuthContext';
-import { Menu, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import { useAuth } from "../context/AuthContext";
+import { Menu, X } from "lucide-react";
 // import ThemeToggle from '../components/ThemeToggle';
 
 const Dashboard = () => {
@@ -12,10 +12,11 @@ const Dashboard = () => {
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
   const [isUserDropdownVisible, setIsUserDropdownVisible] = useState(false);
   const avatarRef = useRef(null);
+  const navigate = useNavigate();
 
   const getPageTitle = () => {
-    const path = location.pathname.split('/').pop();
-    if (!path) return 'Dashboard';
+    const path = location.pathname.split("/").pop();
+    if (!path) return "Dashboard";
     return path.charAt(0).toUpperCase() + path.slice(1);
   };
 
@@ -34,15 +35,15 @@ const Dashboard = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [avatarRef]);
 
   React.useEffect(() => {
-    const path = location.pathname.split('/').pop();
-    if (path && path !== 'dashboard') {
+    const path = location.pathname.split("/").pop();
+    if (path && path !== "dashboard") {
       setShowWelcomeBanner(false);
     } else {
       setShowWelcomeBanner(true);
@@ -50,17 +51,7 @@ const Dashboard = () => {
   }, [location.pathname]);
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto">
-            <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-indigo-200"></div>
-            <div className="absolute top-0 left-0 w-full h-full rounded-full border-t-4 border-indigo-600 animate-spin"></div>
-          </div>
-          <p className="mt-6 text-gray-600 font-medium">Verifying authentication...</p>
-        </div>
-      </div>
-    );
+    navigate("/");
   }
 
   return (
@@ -69,14 +60,16 @@ const Dashboard = () => {
         <ThemeToggle />
       </div> */}
       <div
-        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={toggleMobileMenu}
       />
 
       <div
-        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <Sidebar />
         <button
@@ -103,10 +96,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center">
-              <div
-                className="relative"
-                ref={avatarRef}
-              >
+              <div className="relative" ref={avatarRef}>
                 <button
                   className="overflow-hidden w-10 h-10 rounded-full ring-2 ring-indigo-500 ring-offset-2 ring-offset-white focus:outline-none hover:scale-105 transition duration-300"
                   onClick={toggleUserDropdown}
@@ -114,19 +104,31 @@ const Dashboard = () => {
                   aria-haspopup="true"
                 >
                   <img
-                    src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email}&background=random`}
+                    src={
+                      user.photoURL ||
+                      `https://ui-avatars.com/api/?name=${
+                        user.displayName || user.email
+                      }&background=random`
+                    }
                     alt="User avatar"
                     className="w-full h-full object-cover"
                   />
                 </button>
 
                 <div
-                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${isUserDropdownVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-                    }`}
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${
+                    isUserDropdownVisible
+                      ? "scale-100 opacity-100"
+                      : "scale-95 opacity-0 pointer-events-none"
+                  }`}
                 >
                   <div className="p-3 border-b">
-                    <p className="font-medium text-gray-800 truncate">{user.displayName || user.email}</p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <p className="font-medium text-gray-800 truncate">
+                      {user.displayName || user.email}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user.email}
+                    </p>
                   </div>
                   <div>
                     <button
@@ -153,10 +155,14 @@ const Dashboard = () => {
                 </div>
                 <div className="relative px-8 py-16 md:py-20 text-center">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-800 tracking-tight mb-6 animate-fadeSlideUp">
-                    Welcome to <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">GyanSys</span>
+                    Welcome to{" "}
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">
+                      GyanSys
+                    </span>
                   </h1>
                   <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto animate-fadeSlideUp animation-delay-200">
-                    Your comprehensive business solutions partner. Access all your tools and insights from this dashboard.
+                    Your comprehensive business solutions partner. Access all
+                    your tools and insights from this dashboard.
                   </p>
                 </div>
                 <div className="absolute top-4 right-4 flex space-x-2">
@@ -175,9 +181,7 @@ const Dashboard = () => {
             <div>
               Status: <span className="text-green-500">●</span> Online
             </div>
-            <div>
-              Last updated: {new Date().toLocaleTimeString()}
-            </div>
+            <div>Last updated: {new Date().toLocaleTimeString()}</div>
           </div>
         </footer>
       </div>

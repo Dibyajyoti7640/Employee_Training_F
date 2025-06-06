@@ -8,6 +8,7 @@ import {
   BookOpen,
   UserCheck,
   BarChart2,
+  CalendarIcon,
 } from "lucide-react";
 
 const Sidebar = ({ collapsed = false }) => {
@@ -40,6 +41,11 @@ const Sidebar = ({ collapsed = false }) => {
           label: "View Quiz",
           icon: <Briefcase size={20} />,
         },
+        {
+          to: "calendar",
+          label: "Calendar",
+          icon: <CalendarIcon size={20} />,
+        },
       ],
       Manager: [
         {
@@ -57,6 +63,11 @@ const Sidebar = ({ collapsed = false }) => {
           to: "manager/responses",
           label: "View Quiz",
           icon: <Briefcase size={20} />,
+        },
+        {
+          to: "calendar",
+          label: "Calendar",
+          icon: <CalendarIcon size={20} />,
         },
       ],
       Employee: [
@@ -76,6 +87,11 @@ const Sidebar = ({ collapsed = false }) => {
           icon: <BarChart2 size={20} />,
         },
         { to: "employee/quizzes", label: "Quiz", icon: <FileText size={20} /> },
+        {
+          to: "calendar",
+          label: "Calendar",
+          icon: <CalendarIcon size={20} />,
+        },
       ],
     };
 
