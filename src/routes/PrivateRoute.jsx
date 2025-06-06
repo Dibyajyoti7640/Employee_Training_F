@@ -1,31 +1,38 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const PrivateRoute = ({ children, role }) => {
   const { user, setUser } = useAuth();
-  if (!user) {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('authToken');
+  const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
-    if (storedToken == "") {
-      <Navigate to="/" />;
-    }
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("authToken");
 
-    console.log(storedToken, storedUser)
-
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+    if (!user) {
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser));
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+      }
     } else {
-
-      console.log("User not found")
-      return <Navigate to="/" />;
+      setIsAuthorized(true);
     }
+    setLoading(false);
+  }, [user, setUser]);
+
+  if (loading) return <div>Loading...</div>;
+
+  if (!user && !isAuthorized) {
+    return <Navigate to="/" />;
   }
-  else if (user.role !== role) {
+
+  if (user && role && user.role !== role) {
     return <div className="p-4 text-red-600">Unauthorized Access</div>;
   }
-
 
   return children;
 };
