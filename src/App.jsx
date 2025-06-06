@@ -5,11 +5,13 @@ import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./routes/PrivateRoute";
 
 import AdminCourses from "./pages/Admin/Courses";
+import AdminCourseDetails from "./pages/Admin/CourseDetails";
 import AdminEmployees from "./pages/Admin/Employees";
 import AdminQuizzes from "./pages/Admin/Quizzes";
 import AdminQuizResponses from "./pages/Admin/ViewQuiz";
 
 import ManagerCourses from "./pages/Manager/Courses";
+import ManagerCourseDetails from "./pages/Manager/CourseDetails";
 import ManagerEmployees from "./pages/Manager/Employees";
 import ManagerQuizzes from "./pages/Manager/Quizzes";
 import ManagerQuizResponses from "./pages/Manager/ViewQuiz";
@@ -33,6 +35,14 @@ function App() {
             element={
               <PrivateRoute role="Admin">
                 <AdminCourses />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="admin/courses/:courseId"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminCourseDetails />
               </PrivateRoute>
             }
           />
@@ -65,6 +75,14 @@ function App() {
             element={
               <PrivateRoute role="Manager">
                 <ManagerCourses />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="manager/courses/:courseId"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerCourseDetails />
               </PrivateRoute>
             }
           />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CourseCard from '../../components/CourseCard';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { PlusCircle, X, Search, Filter, Calendar, Clock, Users, Briefcase, ChevronDown, ArrowLeft, Trash2, Edit } from 'lucide-react';
 
 const AdminCourses = () => {
@@ -18,7 +18,8 @@ const AdminCourses = () => {
   const [sortBy, setSortBy] = useState('startDate');
   const [sortOrder, setSortOrder] = useState('asc');
   const { user } = useAuth();
-  
+  const navigate = useNavigate();
+
   const [newCourse, setNewCourse] = useState({
     title: '',
     description: '',
@@ -46,16 +47,16 @@ const AdminCourses = () => {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
-    api.get('/TrainingPrograms') 
+    api.get('/TrainingPrograms')
       .then(response => {
         setCourses(response.data);
         setFilteredCourses(response.data);
-        
+
         const uniqueCategories = [...new Set(response.data.map(course => course.category))].filter(Boolean);
         setCategories(uniqueCategories);
-        
+
         setLoading(false);
       })
       .catch(error => {
@@ -66,33 +67,33 @@ const AdminCourses = () => {
 
   useEffect(() => {
     let result = [...courses];
-    
+
     if (searchTerm) {
-      result = result.filter(course => 
+      result = result.filter(course =>
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         course.trainer.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (filterCategory) {
       result = result.filter(course => course.category === filterCategory);
     }
-    
+
     result.sort((a, b) => {
       let valueA = a[sortBy];
       let valueB = b[sortBy];
-      
+
       if (sortBy === 'startDate' || sortBy === 'endDate') {
         valueA = new Date(valueA);
         valueB = new Date(valueB);
       }
-      
+
       if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
       if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-    
+
     setFilteredCourses(result);
   }, [searchTerm, filterCategory, courses, sortBy, sortOrder]);
 
@@ -103,27 +104,27 @@ const AdminCourses = () => {
 
   const handleAddCourse = (e) => {
     e.preventDefault();
-    
+
     if (!user || !user.userId) {
       alert("You must be logged in to add a course");
       return;
     }
-    
+
     const courseToAdd = {
       ...newCourse,
       createdBy: user.userId
     };
-    
+
     setSubmitting(true);
-    
+
     api.post('/TrainingPrograms', courseToAdd)
       .then(response => {
         setCourses(prevCourses => [...prevCourses, response.data]);
-        
+
         if (newCourse.category && !categories.includes(newCourse.category)) {
           setCategories(prev => [...prev, newCourse.category]);
         }
-        
+
         setNewCourse({
           title: '',
           description: '',
@@ -136,7 +137,7 @@ const AdminCourses = () => {
           category: '',
           createdBy: user.userId
         });
-        
+
         setShowForm(false);
         setSubmitting(false);
       })
@@ -163,6 +164,10 @@ const AdminCourses = () => {
     }
   };
 
+  const handleCourseClick = (courseId) => {
+    navigate(`/dashboard/admin/courses/${courseId}`);
+  };
+
   if (!loading && !user) {
     return <Navigate to="/login" />;
   }
@@ -175,8 +180,8 @@ const AdminCourses = () => {
             <span className="relative z-10">Admin - Manage Courses</span>
             <span className="absolute bottom-1 left-0 w-full h-3 bg-emerald-200 opacity-50 -z-10 transform -rotate-1 group-hover:rotate-0 group-hover:h-4 transition-all duration-500"></span>
           </h2>
-          
-          <button 
+
+          <button
             onClick={() => setShowForm(!showForm)}
             className="group flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
             aria-expanded={showForm}
@@ -194,7 +199,7 @@ const AdminCourses = () => {
             )}
           </button>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow-md p-4 mb-6 transition-all duration-300 hover:shadow-lg">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-1/2">
@@ -209,7 +214,7 @@ const AdminCourses = () => {
                 className="pl-10 w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 transition-all duration-300"
               />
             </div>
-            
+
             <div className="flex items-center gap-4 w-full md:w-auto">
               <button
                 onClick={() => setFiltersVisible(!filtersVisible)}
@@ -217,14 +222,14 @@ const AdminCourses = () => {
               >
                 <Filter size={16} className="text-slate-500" />
                 <span>Filters</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`text-slate-500 transition-transform duration-300 ${filtersVisible ? 'rotate-180' : ''}`} 
+                <ChevronDown
+                  size={16}
+                  className={`text-slate-500 transition-transform duration-300 ${filtersVisible ? 'rotate-180' : ''}`}
                 />
               </button>
-              
+
               {(searchTerm || filterCategory || sortBy !== 'startDate' || sortOrder !== 'asc') && (
-                <button 
+                <button
                   onClick={resetFilters}
                   className="flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors duration-300"
                 >
@@ -234,11 +239,10 @@ const AdminCourses = () => {
               )}
             </div>
           </div>
-          
-          <div 
-            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
-              filtersVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}
+
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${filtersVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
               <div>
@@ -254,7 +258,7 @@ const AdminCourses = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Sort By</label>
                 <select
@@ -269,7 +273,7 @@ const AdminCourses = () => {
                   <option value="maxParticipants">Max Participants</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Order</label>
                 <select
@@ -284,18 +288,17 @@ const AdminCourses = () => {
             </div>
           </div>
         </div>
-        
-        <div 
-          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${
-            showForm ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-          }`}
+
+        <div
+          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${showForm ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+            }`}
         >
           <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-emerald-500 transform transition-all duration-500">
             <h3 className="text-xl font-bold mb-4 text-emerald-700 flex items-center gap-2">
               <PlusCircle size={20} />
               Create New Training Course
             </h3>
-            
+
             <form onSubmit={handleAddCourse}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="group">
@@ -310,7 +313,7 @@ const AdminCourses = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="block text-slate-700 text-sm font-medium mb-1">Trainer *</label>
                   <input
@@ -323,7 +326,7 @@ const AdminCourses = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="text-slate-700 text-sm font-medium mb-1 flex items-center gap-1">
                     <Calendar size={16} className="text-emerald-500" />
@@ -338,7 +341,7 @@ const AdminCourses = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="text-slate-700 text-sm font-medium mb-1 flex items-center gap-1">
                     <Calendar size={16} className="text-emerald-500" />
@@ -353,7 +356,7 @@ const AdminCourses = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="block text-slate-700 text-sm font-medium mb-1">Mode *</label>
                   <select
@@ -368,7 +371,7 @@ const AdminCourses = () => {
                     <option value="Hybrid">Hybrid</option>
                   </select>
                 </div>
-                
+
                 <div className="group">
                   <label className="text-slate-700 text-sm font-medium mb-1 flex items-center gap-1">
                     <Clock size={16} className="text-emerald-500" />
@@ -385,7 +388,7 @@ const AdminCourses = () => {
                     min="1"
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="text-slate-700 text-sm font-medium mb-1 flex items-center gap-1">
                     <Users size={16} className="text-emerald-500" />
@@ -401,7 +404,7 @@ const AdminCourses = () => {
                     min="1"
                   />
                 </div>
-                
+
                 <div className="group">
                   <label className="text-slate-700 text-sm font-medium mb-1 flex items-center gap-1">
                     <Briefcase size={16} className="text-emerald-500" />
@@ -423,7 +426,7 @@ const AdminCourses = () => {
                   </datalist>
                 </div>
               </div>
-              
+
               <div className="mb-4 group truncate">
                 <label className="block text-slate-700 text-sm font-medium mb-1 ">Description *</label>
                 <textarea
@@ -435,18 +438,18 @@ const AdminCourses = () => {
                   required
                 />
               </div>
-              
+
               <div className="flex justify-end">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowForm(false)}
                   className="mr-2 py-2 px-4 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors duration-300 flex items-center gap-2"
                 >
                   <X size={16} />
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting || !user}
                 >
@@ -469,7 +472,7 @@ const AdminCourses = () => {
             </form>
           </div>
         </div>
-        
+
         {!loading && filteredCourses.length > 0 && (
           <div className="flex justify-between items-center mb-4 text-sm text-slate-600">
             <div>
@@ -480,7 +483,7 @@ const AdminCourses = () => {
             </div>
             <div className="flex items-center gap-1">
               <span>Sorted by:</span>
-              <button 
+              <button
                 onClick={() => handleSort(sortBy)}
                 className="inline-flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-800"
               >
@@ -489,15 +492,15 @@ const AdminCourses = () => {
                 {sortBy === 'endDate' && 'End Date'}
                 {sortBy === 'durationHours' && 'Duration'}
                 {sortBy === 'maxParticipants' && 'Max Participants'}
-                <ChevronDown 
-                  size={14} 
-                  className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} 
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
                 />
               </button>
             </div>
           </div>
         )}
-        
+
         {loading ? (
           <div className="flex justify-center items-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
@@ -507,10 +510,11 @@ const AdminCourses = () => {
             {filteredCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course, index) => (
-                  <div 
-                    key={course.id} 
-                    className="opacity-0 animate-fade-in-up" 
-                    style={{animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards'}}
+                  <div
+                    key={course.programId}
+                    className="opacity-0 animate-fade-in-up cursor-pointer transform transition-all duration-300 hover:scale-105"
+                    style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+                    onClick={() => handleCourseClick(course.programId)}
                   >
                     <CourseCard course={course} />
                   </div>
@@ -523,12 +527,12 @@ const AdminCourses = () => {
                 </div>
                 <h3 className="text-lg font-medium text-slate-900 mb-2">No courses found</h3>
                 <p className="text-slate-500 mb-4 max-w-md mx-auto">
-                  {searchTerm || filterCategory ? 
-                    'Try adjusting your search or filter criteria to find what you\'re looking for.' : 
+                  {searchTerm || filterCategory ?
+                    'Try adjusting your search or filter criteria to find what you\'re looking for.' :
                     'Get started by adding your first course. Click the "Add New Course" button above.'}
                 </p>
                 {(searchTerm || filterCategory) && (
-                  <button 
+                  <button
                     onClick={resetFilters}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300"
                   >
@@ -541,7 +545,7 @@ const AdminCourses = () => {
           </>
         )}
       </div>
-      
+
       <style jsx>{`
         @keyframes fadeInUp {
           from {

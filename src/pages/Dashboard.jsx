@@ -3,16 +3,21 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
 import { Menu, X } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 // import ThemeToggle from '../components/ThemeToggle';
 
 const Dashboard = () => {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
   const [isUserDropdownVisible, setIsUserDropdownVisible] = useState(false);
   const avatarRef = useRef(null);
   const navigate = useNavigate();
+
+  const user = localStorage.getItem("user");
+  const token = localStorage.getItem("authToken");
+  const decoded = jwtDecode(token);
 
   const getPageTitle = () => {
     const path = location.pathname.split("/").pop();
@@ -28,6 +33,32 @@ const Dashboard = () => {
     setIsUserDropdownVisible(!isUserDropdownVisible);
   };
 
+  const getInitials = (user) => {
+    if (!user) return "nn";
+    const name = decoded.name || decoded.email || "Unknown";
+
+    if (name.includes('@')) {
+      const emailPrefix = name.split('@')[0];
+      return emailPrefix.slice(0, 2).toUpperCase();
+    }
+
+    const nameParts = name.trim().split(' ');
+    if (nameParts.length >= 2) {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const getRandomPastelColor = (seed = "") => {
+    if (!seed) seed = "default";
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 70%, 85%)`;
+  };
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (avatarRef.current && !avatarRef.current.contains(event.target)) {
@@ -50,26 +81,29 @@ const Dashboard = () => {
     }
   }, [location.pathname]);
 
-  if (!user) {
-    navigate("/");
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
+  if (!user) {
+    return null;
+  }
   return (
     <div className="min-h-screen flex bg-gray-50 text-gray-900">
       {/* <div className='absolute top-3 right-65'>
         <ThemeToggle />
       </div> */}
       <div
-        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${
-          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={toggleMobileMenu}
       />
 
       <div
-        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <Sidebar />
         <button
@@ -98,36 +132,31 @@ const Dashboard = () => {
             <div className="flex items-center">
               <div className="relative" ref={avatarRef}>
                 <button
-                  className="overflow-hidden w-10 h-10 rounded-full ring-2 ring-indigo-500 ring-offset-2 ring-offset-white focus:outline-none hover:scale-105 transition duration-300"
+                  className="flex items-center justify-center w-10 h-10 rounded-full ring-2 ring-indigo-500 ring-offset-2 ring-offset-white focus:outline-none hover:scale-105 transition duration-300"
                   onClick={toggleUserDropdown}
                   aria-expanded={isUserDropdownVisible}
                   aria-haspopup="true"
+                  style={{
+                    backgroundColor: getRandomPastelColor(user?.email || user?.name || "default"),
+                  }}
                 >
-                  <img
-                    src={
-                      user.photoURL ||
-                      `https://ui-avatars.com/api/?name=${
-                        user.displayName || user.email
-                      }&background=random`
-                    }
-                    alt="User avatar"
-                    className="w-full h-full object-cover"
-                  />
+                  <span className="text-sm font-semibold text-black">
+                    {getInitials(user)}
+                  </span>
                 </button>
 
                 <div
-                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${
-                    isUserDropdownVisible
-                      ? "scale-100 opacity-100"
-                      : "scale-95 opacity-0 pointer-events-none"
-                  }`}
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${isUserDropdownVisible
+                    ? "scale-100 opacity-100"
+                    : "scale-95 opacity-0 pointer-events-none"
+                    }`}
                 >
                   <div className="p-3 border-b">
                     <p className="font-medium text-gray-800 truncate">
-                      {user.displayName || user.email}
+                      {decoded?.name || "Unknown User"}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {user.email}
+                      {decoded?.email || "No email provided"}
                     </p>
                   </div>
                   <div>
