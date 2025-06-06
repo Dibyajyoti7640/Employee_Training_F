@@ -11,7 +11,6 @@ import {
   FileText,
 } from "lucide-react";
 import api from "../services/api";
-import { se } from "date-fns/locale";
 
 const CalendarComponent = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -54,7 +53,6 @@ const CalendarComponent = () => {
       const response = await api.get("/Calendars");
       console.log("Fetched events:", response.data);
 
-      // Transform API response to match component expectations
       const normalizedEvents = response.data.map((event) => ({
         id: event.id,
         title: event.meetingName || "Untitled Event",
@@ -66,7 +64,7 @@ const CalendarComponent = () => {
         venue: event.venue || "",
         endingDate:
           event.endingDate || event.startingDate || normalizeDate(event.time),
-        rawData: event, // Store the raw data for details view
+        rawData: event,
       }));
 
       setEvents(normalizedEvents);
@@ -79,25 +77,7 @@ const CalendarComponent = () => {
       setIsLoading(false);
     }
   };
-  // const sendReminder = async (subject, body) => {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-  //     formData.append("subject", subject);
-  //     formData.append("body", body);
 
-  //     const response = await api.post("/Reminder/upload", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error sending reminder:", error);
-  //     throw error; // Re-throw the error to be caught in handleAddEvent
-  //   }
-  // };
   const sendReminder = async (subject, body) => {
     try {
       const emailFile = globalEmailFile || file;
@@ -221,7 +201,6 @@ const CalendarComponent = () => {
       const eventEndDate = new Date(event.endingDate || event.date);
       const currentDate = new Date(dateStr);
 
-      // Check if the date is between start and end dates (inclusive)
       return currentDate >= eventStartDate && currentDate <= eventEndDate;
     });
 
@@ -261,7 +240,7 @@ const CalendarComponent = () => {
 
   const handleAddEvent = async () => {
     if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
-      return; // Validation failed
+      return;
     }
 
     const [hours, minutes] = eventTime.split(":");
@@ -282,16 +261,13 @@ const CalendarComponent = () => {
     try {
       setIsLoading(true);
 
-      // Set subject and body
       const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
       const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
 
-      // First try to send the email (if file is selected)
       if (file) {
         await sendReminder(reminderSubject, reminderBody);
       }
 
-      // Only proceed to add the event if email was sent successfully (or no file was selected)
       const response = await api.post("/Calendars", newEvent);
 
       const normalizedEvent = {
@@ -340,7 +316,6 @@ const CalendarComponent = () => {
       await api.delete(`/Calendars/${eventId}`);
       setEvents(events.filter((event) => event.id !== eventId));
       console.log(globalEmailFile);
-      // Send cancellation email if we have a global email file
       if (globalEmailFile && eventToDelete) {
         console.log("Sending cancellation email for event:", eventToDelete);
         const cancellationSubject = `Event Canceled: ${eventToDelete.title}`;
@@ -360,9 +335,9 @@ We apologize for any inconvenience this may cause.`;
           console.error("Failed to send cancellation email:", emailError);
           setError(
             "Event was deleted but failed to send cancellation emails: " +
-              (emailError.response?.data?.message ||
-                emailError.message ||
-                "Unknown error")
+            (emailError.response?.data?.message ||
+              emailError.message ||
+              "Unknown error")
           );
         }
       } else if (!globalEmailFile) {
@@ -397,8 +372,8 @@ We apologize for any inconvenience this may cause.`;
         ? 0
         : selectedHour
       : selectedHour === 12
-      ? 12
-      : selectedHour + 12;
+        ? 12
+        : selectedHour + 12;
     const formattedTime = `${String(hours).padStart(2, "0")}:${String(
       selectedMinute
     ).padStart(2, "0")}`;
@@ -435,11 +410,10 @@ We apologize for any inconvenience this may cause.`;
                 return (
                   <button
                     key={`hour-${hour}`}
-                    className={`absolute w-7 h-7 flex items-center justify-center rounded-full transition-all ${
-                      selectedHour === hour
+                    className={`absolute w-7 h-7 flex items-center justify-center rounded-full transition-all ${selectedHour === hour
                         ? "bg-purple-600 text-white"
                         : "hover:bg-purple-100 text-purple-800"
-                    }`}
+                      }`}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -460,11 +434,10 @@ We apologize for any inconvenience this may cause.`;
                 return (
                   <button
                     key={`minute-${minute}`}
-                    className={`absolute w-6 h-6 flex items-center justify-center rounded-full text-xs transition-all ${
-                      selectedMinute === minute
+                    className={`absolute w-6 h-6 flex items-center justify-center rounded-full text-xs transition-all ${selectedMinute === minute
                         ? "bg-indigo-600 text-white"
                         : "hover:bg-indigo-100 text-indigo-800"
-                    }`}
+                      }`}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -483,17 +456,15 @@ We apologize for any inconvenience this may cause.`;
 
           <div className="flex justify-center space-x-4 mb-4">
             <button
-              className={`px-4 py-2 rounded-lg ${
-                isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-lg ${isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => setIsAM(true)}
             >
               AM
             </button>
             <button
-              className={`px-4 py-2 rounded-lg ${
-                !isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-lg ${!isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => setIsAM(false)}
             >
               PM
@@ -548,23 +519,20 @@ We apologize for any inconvenience this may cause.`;
       days.push(
         <div
           key={day}
-          className={`h-32 border border-purple-200 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-purple-300 ${
-            isToday
+          className={`h-32 border border-purple-200 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-purple-300 ${isToday
               ? "bg-purple-50 border-purple-400"
               : "bg-white hover:bg-purple-25"
-          }`}
+            }`}
           onClick={() => handleDateClick(day)}
         >
           <div className="h-full flex flex-col">
             <div
-              className={`p-2 border-b border-purple-100 ${
-                isToday ? "bg-purple-100" : "bg-gray-50"
-              }`}
+              className={`p-2 border-b border-purple-100 ${isToday ? "bg-purple-100" : "bg-gray-50"
+                }`}
             >
               <span
-                className={`text-sm font-semibold ${
-                  isToday ? "text-purple-800" : "text-gray-700"
-                }`}
+                className={`text-sm font-semibold ${isToday ? "text-purple-800" : "text-gray-700"
+                  }`}
               >
                 {day}
               </span>
