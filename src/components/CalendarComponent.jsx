@@ -259,68 +259,6 @@ const CalendarComponent = () => {
     setShowEventDetails(true);
   };
 
-  // const handleAddEvent = async () => {
-  //   if (eventTitle.trim() && eventTime.trim() && selectedDate) {
-  //     const [hours, minutes] = eventTime.split(":");
-  //     const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
-
-  //     const newEvent = {
-  //       meetingName: eventTitle.trim(),
-  //       time: eventDateTime.toISOString(),
-  //       teamsLink: meetingLink.trim() || null,
-  //       trainer: trainer.trim() || null,
-  //       organiser: organiser.trim() || null,
-  //       venue: venue.trim() || null,
-  //       startingDate: selectedDate,
-  //       endingDate: endingDate || selectedDate,
-  //       description: eventDescription,
-  //     };
-
-  //     try {
-  //       setIsLoading(true);
-  //       const response = await api.post("/Calendars", newEvent);
-
-  //       const normalizedEvent = {
-  //         id: response.data.id,
-  //         title: response.data.meetingName || eventTitle.trim(),
-  //         date: response.data.startingDate || selectedDate,
-  //         time: response.data.time
-  //           ? extractTimeFromDateTime(response.data.time)
-  //           : eventTime,
-  //         meetingLink: response.data.teamsLink || meetingLink.trim(),
-  //         trainer: response.data.trainer || trainer.trim(),
-  //         organiser: response.data.organiser || organiser.trim(),
-  //         venue: response.data.venue || venue.trim(),
-  //         endingDate: response.data.endingDate || endingDate || selectedDate,
-  //         rawData: response.data,
-  //       };
-
-  //       setEvents([...events, normalizedEvent]);
-
-  //       // Set subject and body
-  //       const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
-  //       const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
-
-  //       setSubject(reminderSubject);
-  //       setBody(reminderBody);
-
-  //       // Only send reminder if file is selected
-  //       if (file) {
-  //         await sendReminder();
-  //       }
-
-  //       resetForm();
-  //       setShowModal(false);
-  //     } catch (err) {
-  //       setError(
-  //         err.response?.data?.message || err.message || "Failed to add event"
-  //       );
-  //       console.error("Error adding event:", err);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  // };
   const handleAddEvent = async () => {
     if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
       return; // Validation failed
@@ -393,22 +331,6 @@ const CalendarComponent = () => {
     setEndingDate("");
     setShowClock(false);
   };
-
-  // const handleDeleteEvent = async (eventId) => {
-  //   try {
-  //     setIsLoading(true);
-  //     await api.delete(`/Calendars/${eventId}`);
-  //     setEvents(events.filter((event) => event.id !== eventId));
-  //     setShowEventDetails(false);
-  //   } catch (err) {
-  //     setError(
-  //       err.response?.data?.message || err.message || "Failed to delete event"
-  //     );
-  //     console.error("Error deleting event:", err);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const handleDeleteEvent = async (eventId) => {
     try {
       setIsLoading(true);
