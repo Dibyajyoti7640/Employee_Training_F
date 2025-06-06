@@ -11,6 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 import api from "../services/api";
+import { se } from "date-fns/locale";
 
 const CalendarComponent = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -33,11 +34,19 @@ const CalendarComponent = () => {
   const [isAM, setIsAM] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [file, setFile] = useState(null);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [globalEmailFile, setGlobalEmailFile] = useState(null);
+  const [isEmailFileUploaded, setIsEmailFileUploaded] = useState(false);
   useEffect(() => {
     fetchEvents();
   }, []);
-
+  const handleGlobalFileUpload = (uploadedFile) => {
+    setGlobalEmailFile(uploadedFile);
+    setIsEmailFileUploaded(true);
+    setFile(uploadedFile);
+  };
   const fetchEvents = async () => {
     setIsLoading(true);
     setError(null);
@@ -70,7 +79,53 @@ const CalendarComponent = () => {
       setIsLoading(false);
     }
   };
+  // const sendReminder = async (subject, body) => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("subject", subject);
+  //     formData.append("body", body);
 
+  //     const response = await api.post("/Reminder/upload", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Error sending reminder:", error);
+  //     throw error; // Re-throw the error to be caught in handleAddEvent
+  //   }
+  // };
+  const sendReminder = async (subject, body) => {
+    try {
+      const emailFile = globalEmailFile || file;
+      console.log("Sending reminder with file:", emailFile);
+      if (!emailFile) {
+        console.warn(
+          "No email list file available - skipping email notification"
+        );
+        return { success: false, message: "No email file available" };
+      }
+
+      const formData = new FormData();
+      formData.append("file", emailFile);
+      formData.append("subject", subject);
+      formData.append("body", body);
+
+      const response = await api.post("/Reminder/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      throw error;
+    }
+  };
   const extractTimeFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return "00:00";
 
@@ -204,56 +259,130 @@ const CalendarComponent = () => {
     setShowEventDetails(true);
   };
 
-  const handleAddEvent = async () => {
-    if (eventTitle.trim() && eventTime.trim() && selectedDate) {
-      const [hours, minutes] = eventTime.split(":");
-      const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
+  // const handleAddEvent = async () => {
+  //   if (eventTitle.trim() && eventTime.trim() && selectedDate) {
+  //     const [hours, minutes] = eventTime.split(":");
+  //     const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
 
-      const newEvent = {
-        meetingName: eventTitle.trim(),
-        time: eventDateTime.toISOString(),
-        teamsLink: meetingLink.trim() || null,
-        trainer: trainer.trim() || null,
-        organiser: organiser.trim() || null,
-        venue: venue.trim() || null,
-        startingDate: selectedDate,
-        endingDate: endingDate || selectedDate,
-        description: eventDescription,
+  //     const newEvent = {
+  //       meetingName: eventTitle.trim(),
+  //       time: eventDateTime.toISOString(),
+  //       teamsLink: meetingLink.trim() || null,
+  //       trainer: trainer.trim() || null,
+  //       organiser: organiser.trim() || null,
+  //       venue: venue.trim() || null,
+  //       startingDate: selectedDate,
+  //       endingDate: endingDate || selectedDate,
+  //       description: eventDescription,
+  //     };
+
+  //     try {
+  //       setIsLoading(true);
+  //       const response = await api.post("/Calendars", newEvent);
+
+  //       const normalizedEvent = {
+  //         id: response.data.id,
+  //         title: response.data.meetingName || eventTitle.trim(),
+  //         date: response.data.startingDate || selectedDate,
+  //         time: response.data.time
+  //           ? extractTimeFromDateTime(response.data.time)
+  //           : eventTime,
+  //         meetingLink: response.data.teamsLink || meetingLink.trim(),
+  //         trainer: response.data.trainer || trainer.trim(),
+  //         organiser: response.data.organiser || organiser.trim(),
+  //         venue: response.data.venue || venue.trim(),
+  //         endingDate: response.data.endingDate || endingDate || selectedDate,
+  //         rawData: response.data,
+  //       };
+
+  //       setEvents([...events, normalizedEvent]);
+
+  //       // Set subject and body
+  //       const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
+  //       const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
+
+  //       setSubject(reminderSubject);
+  //       setBody(reminderBody);
+
+  //       // Only send reminder if file is selected
+  //       if (file) {
+  //         await sendReminder();
+  //       }
+
+  //       resetForm();
+  //       setShowModal(false);
+  //     } catch (err) {
+  //       setError(
+  //         err.response?.data?.message || err.message || "Failed to add event"
+  //       );
+  //       console.error("Error adding event:", err);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  // };
+  const handleAddEvent = async () => {
+    if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
+      return; // Validation failed
+    }
+
+    const [hours, minutes] = eventTime.split(":");
+    const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
+
+    const newEvent = {
+      meetingName: eventTitle.trim(),
+      time: eventDateTime.toISOString(),
+      teamsLink: meetingLink.trim() || null,
+      trainer: trainer.trim() || null,
+      organiser: organiser.trim() || null,
+      venue: venue.trim() || null,
+      startingDate: selectedDate,
+      endingDate: endingDate || selectedDate,
+      description: eventDescription,
+    };
+
+    try {
+      setIsLoading(true);
+
+      // Set subject and body
+      const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
+      const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
+
+      // First try to send the email (if file is selected)
+      if (file) {
+        await sendReminder(reminderSubject, reminderBody);
+      }
+
+      // Only proceed to add the event if email was sent successfully (or no file was selected)
+      const response = await api.post("/Calendars", newEvent);
+
+      const normalizedEvent = {
+        id: response.data.id,
+        title: response.data.meetingName || eventTitle.trim(),
+        date: response.data.startingDate || selectedDate,
+        time: response.data.time
+          ? extractTimeFromDateTime(response.data.time)
+          : eventTime,
+        meetingLink: response.data.teamsLink || meetingLink.trim(),
+        trainer: response.data.trainer || trainer.trim(),
+        organiser: response.data.organiser || organiser.trim(),
+        venue: response.data.venue || venue.trim(),
+        endingDate: response.data.endingDate || endingDate || selectedDate,
+        rawData: response.data,
       };
 
-      try {
-        setIsLoading(true);
-        const response = await api.post("/Calendars", newEvent);
-
-        const normalizedEvent = {
-          id: response.data.id,
-          title: response.data.meetingName || eventTitle.trim(),
-          date: response.data.startingDate || selectedDate,
-          time: response.data.time
-            ? extractTimeFromDateTime(response.data.time)
-            : eventTime,
-          meetingLink: response.data.teamsLink || meetingLink.trim(),
-          trainer: response.data.trainer || trainer.trim(),
-          organiser: response.data.organiser || organiser.trim(),
-          venue: response.data.venue || venue.trim(),
-          endingDate: response.data.endingDate || endingDate || selectedDate,
-          rawData: response.data,
-        };
-
-        setEvents([...events, normalizedEvent]);
-        resetForm();
-        setShowModal(false);
-      } catch (err) {
-        setError(
-          err.response?.data?.message || err.message || "Failed to add event"
-        );
-        console.error("Error adding event:", err);
-      } finally {
-        setIsLoading(false);
-      }
+      setEvents([...events, normalizedEvent]);
+      resetForm();
+      setShowModal(false);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || err.message || "Failed to add event"
+      );
+      console.error("Error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
-
   const resetForm = () => {
     setEventTitle("");
     setEventTime("");
@@ -265,11 +394,61 @@ const CalendarComponent = () => {
     setShowClock(false);
   };
 
+  // const handleDeleteEvent = async (eventId) => {
+  //   try {
+  //     setIsLoading(true);
+  //     await api.delete(`/Calendars/${eventId}`);
+  //     setEvents(events.filter((event) => event.id !== eventId));
+  //     setShowEventDetails(false);
+  //   } catch (err) {
+  //     setError(
+  //       err.response?.data?.message || err.message || "Failed to delete event"
+  //     );
+  //     console.error("Error deleting event:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const handleDeleteEvent = async (eventId) => {
     try {
       setIsLoading(true);
+
+      const eventToDelete = events.find((event) => event.id === eventId);
+
       await api.delete(`/Calendars/${eventId}`);
       setEvents(events.filter((event) => event.id !== eventId));
+      console.log(globalEmailFile);
+      // Send cancellation email if we have a global email file
+      if (globalEmailFile && eventToDelete) {
+        console.log("Sending cancellation email for event:", eventToDelete);
+        const cancellationSubject = `Event Canceled: ${eventToDelete.title}`;
+        const cancellationBody = `The following event has been canceled:
+
+Event: ${eventToDelete.title}
+Date: ${eventToDelete.date}
+Time: ${eventToDelete.time}
+${eventToDelete.venue ? `Venue: ${eventToDelete.venue}` : ""}
+
+We apologize for any inconvenience this may cause.`;
+
+        try {
+          await sendReminder(cancellationSubject, cancellationBody);
+          console.log("Cancellation email sent successfully");
+        } catch (emailError) {
+          console.error("Failed to send cancellation email:", emailError);
+          setError(
+            "Event was deleted but failed to send cancellation emails: " +
+              (emailError.response?.data?.message ||
+                emailError.message ||
+                "Unknown error")
+          );
+        }
+      } else if (!globalEmailFile) {
+        console.log(
+          "No email file uploaded - skipping cancellation notification"
+        );
+      }
+
       setShowEventDetails(false);
     } catch (err) {
       setError(
@@ -280,7 +459,6 @@ const CalendarComponent = () => {
       setIsLoading(false);
     }
   };
-
   const formatDateDisplay = (dateStr) => {
     const date = new Date(dateStr + "T00:00:00");
     return date.toLocaleDateString("en-US", {
@@ -655,18 +833,6 @@ const CalendarComponent = () => {
         }
       `}</style>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          <span className="block sm:inline">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="absolute top-0 right-0 px-4 py-3"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-purple-100">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -883,7 +1049,22 @@ const CalendarComponent = () => {
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload File
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => handleGlobalFileUpload(e.target.files[0])}
+                  placeholder="upload file"
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+                {isEmailFileUploaded && (
+                  <p className="mt-1 text-sm text-green-600">
+                    Email list uploaded for all future notifications
+                  </p>
+                )}
+              </div>
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={handleAddEvent}
