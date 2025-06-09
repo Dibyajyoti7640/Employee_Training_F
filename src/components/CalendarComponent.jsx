@@ -11,7 +11,6 @@ import {
   FileText,
 } from "lucide-react";
 import api from "../services/api";
-import { se } from "date-fns/locale";
 
 const CalendarComponent = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -22,6 +21,7 @@ const CalendarComponent = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [eventEndTime, setEventEndTime] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const [trainer, setTrainer] = useState("");
@@ -29,6 +29,7 @@ const CalendarComponent = () => {
   const [venue, setVenue] = useState("");
   const [endingDate, setEndingDate] = useState("");
   const [showClock, setShowClock] = useState(false);
+  const [showEndTimeClock, setShowEndTimeClock] = useState(false);
   const [selectedHour, setSelectedHour] = useState(12);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [isAM, setIsAM] = useState(true);
@@ -39,14 +40,18 @@ const CalendarComponent = () => {
   const [body, setBody] = useState("");
   const [globalEmailFile, setGlobalEmailFile] = useState(null);
   const [isEmailFileUploaded, setIsEmailFileUploaded] = useState(false);
+
   useEffect(() => {
     fetchEvents();
   }, []);
+
   const handleGlobalFileUpload = (uploadedFile) => {
+    sessionStorage.setItem("emailFile", uploadedFile.name);
     setGlobalEmailFile(uploadedFile);
     setIsEmailFileUploaded(true);
     setFile(uploadedFile);
   };
+  const emailFile = sessionStorage.getItem("emailFile");
   const fetchEvents = async () => {
     setIsLoading(true);
     setError(null);
@@ -54,20 +59,23 @@ const CalendarComponent = () => {
       const response = await api.get("/Calendars");
       console.log("Fetched events:", response.data);
 
-      // Transform API response to match component expectations
       const normalizedEvents = response.data.map((event) => ({
         id: event.id,
         title: event.meetingName || "Untitled Event",
         date: event.startingDate || normalizeDate(event.time),
         time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
+        endTime: event.endTime
+          ? extractTimeFromDateTime(event.endTime)
+          : "00:00",
         meetingLink: event.teamsLink || "",
         trainer: event.trainer || "",
         organiser: event.organiser || "",
         venue: event.venue || "",
         endingDate:
           event.endingDate || event.startingDate || normalizeDate(event.time),
-        rawData: event, // Store the raw data for details view
+        rawData: event,
       }));
+      console.log("Normalized events:", response.data);
 
       setEvents(normalizedEvents);
     } catch (err) {
@@ -77,66 +85,6 @@ const CalendarComponent = () => {
       console.error("Error fetching events:", err);
     } finally {
       setIsLoading(false);
-    }
-  };
-  // const sendReminder = async (subject, body) => {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-  //     formData.append("subject", subject);
-  //     formData.append("body", body);
-
-  //     const response = await api.post("/Reminder/upload", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error sending reminder:", error);
-  //     throw error; // Re-throw the error to be caught in handleAddEvent
-  //   }
-  // };
-  const sendReminder = async (subject, body) => {
-    try {
-      const emailFile = globalEmailFile || file;
-      console.log("Sending reminder with file:", emailFile);
-      if (!emailFile) {
-        console.warn(
-          "No email list file available - skipping email notification"
-        );
-        return { success: false, message: "No email file available" };
-      }
-
-      const formData = new FormData();
-      formData.append("file", emailFile);
-      formData.append("subject", subject);
-      formData.append("body", body);
-
-      const response = await api.post("/Reminder/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error("Error sending reminder:", error);
-      throw error;
-    }
-  };
-  const extractTimeFromDateTime = (dateTimeStr) => {
-    if (!dateTimeStr) return "00:00";
-
-    try {
-      const date = new Date(dateTimeStr);
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      return `${hours}:${minutes}`;
-    } catch (error) {
-      console.error("Error extracting time:", error);
-      return "00:00";
     }
   };
 
@@ -220,8 +168,6 @@ const CalendarComponent = () => {
       const eventStartDate = new Date(event.date);
       const eventEndDate = new Date(event.endingDate || event.date);
       const currentDate = new Date(dateStr);
-
-      // Check if the date is between start and end dates (inclusive)
       return currentDate >= eventStartDate && currentDate <= eventEndDate;
     });
 
@@ -259,17 +205,82 @@ const CalendarComponent = () => {
     setShowEventDetails(true);
   };
 
+  // const handleAddEvent = async () => {
+  //   if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
+  //     return;
+  //   }
+
+  //   const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
+  //   const eventEndDateTime = new Date(selectedDate + `T${eventEndTime}:00`);
+
+  //   const newEvent = {
+  //     meetingName: eventTitle.trim(),
+  //     time: eventDateTime.toISOString(),
+  //     endTime: eventEndDateTime.toISOString(),
+  //     teamsLink: meetingLink.trim() || null,
+  //     trainer: trainer.trim() || null,
+  //     organiser: organiser.trim() || null,
+  //     venue: venue.trim() || null,
+  //     startingDate: selectedDate,
+  //     endingDate: endingDate || selectedDate,
+  //     description: eventDescription,
+  //   };
+
+  //   try {
+  //     setIsLoading(true);
+
+  //     const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
+  //     const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} from ${eventTime} to ${eventEndTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
+
+  //     if (file) {
+  //       await sendReminder(reminderSubject, reminderBody);
+  //     }
+
+  //     const response = await api.post("/Calendars", newEvent);
+
+  //     const normalizedEvent = {
+  //       id: response.data.id,
+  //       title: response.data.meetingName || eventTitle.trim(),
+  //       date: response.data.startingDate || selectedDate,
+  //       time: response.data.time
+  //         ? extractTimeFromDateTime(response.data.time)
+  //         : eventTime,
+  //       endTime: response.data.End_time
+  //         ? extractTimeFromDateTime(response.data.End_time)
+  //         : eventEndTime,
+  //       meetingLink: response.data.teamsLink || meetingLink.trim(),
+  //       trainer: response.data.trainer || trainer.trim(),
+  //       organiser: response.data.organiser || organiser.trim(),
+  //       venue: response.data.venue || venue.trim(),
+  //       endingDate: response.data.endingDate || endingDate || selectedDate,
+  //       rawData: response.data,
+  //     };
+
+  //     setEvents([...events, normalizedEvent]);
+  //     resetForm();
+  //     setShowModal(false);
+  //   } catch (err) {
+  //     setError(
+  //       err.response?.data?.message || err.message || "Failed to add event"
+  //     );
+  //     console.error("Error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const handleAddEvent = async () => {
     if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
-      return; // Validation failed
+      return;
     }
 
-    const [hours, minutes] = eventTime.split(":");
-    const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
+    // Create datetime strings in local timezone format
+    const startDateTimeLocal = `${selectedDate}T${eventTime}:00`;
+    const endDateTimeLocal = `${selectedDate}T${eventEndTime}:00`;
 
     const newEvent = {
       meetingName: eventTitle.trim(),
-      time: eventDateTime.toISOString(),
+      time: startDateTimeLocal, // Store as local datetime string
+      endTime: endDateTimeLocal, // Store as local datetime string
       teamsLink: meetingLink.trim() || null,
       trainer: trainer.trim() || null,
       organiser: organiser.trim() || null,
@@ -278,20 +289,17 @@ const CalendarComponent = () => {
       endingDate: endingDate || selectedDate,
       description: eventDescription,
     };
-
+    console.log(eventEndTime);
     try {
       setIsLoading(true);
 
-      // Set subject and body
       const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
-      const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
+      const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} from ${eventTime} to ${eventEndTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
 
-      // First try to send the email (if file is selected)
       if (file) {
         await sendReminder(reminderSubject, reminderBody);
       }
 
-      // Only proceed to add the event if email was sent successfully (or no file was selected)
       const response = await api.post("/Calendars", newEvent);
 
       const normalizedEvent = {
@@ -301,6 +309,9 @@ const CalendarComponent = () => {
         time: response.data.time
           ? extractTimeFromDateTime(response.data.time)
           : eventTime,
+        endTime: response.data.End_time
+          ? extractTimeFromDateTime(response.data.End_time)
+          : eventEndTime,
         meetingLink: response.data.teamsLink || meetingLink.trim(),
         trainer: response.data.trainer || trainer.trim(),
         organiser: response.data.organiser || organiser.trim(),
@@ -321,16 +332,82 @@ const CalendarComponent = () => {
       setIsLoading(false);
     }
   };
+
+  // Also update the extractTimeFromDateTime function to handle both formats:
+
+  const extractTimeFromDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return "00:00";
+
+    try {
+      // Handle both ISO string and local datetime string formats
+      let date;
+
+      if (
+        dateTimeStr.includes("T") &&
+        !dateTimeStr.endsWith("Z") &&
+        !dateTimeStr.includes("+")
+      ) {
+        // Local datetime string format (YYYY-MM-DDTHH:mm:ss)
+        const [datePart, timePart] = dateTimeStr.split("T");
+        const [hours, minutes] = timePart.split(":");
+        return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+          2,
+          "0"
+        )}`;
+      } else {
+        // ISO string or other formats - convert to local time
+        date = new Date(dateTimeStr);
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+      }
+    } catch (error) {
+      console.error("Error extracting time:", error);
+      return "00:00";
+    }
+  };
+  const sendReminder = async (subject, body) => {
+    try {
+      const emailFile = globalEmailFile || file;
+      console.log("Sending reminder with file:", emailFile);
+      if (!emailFile) {
+        console.warn(
+          "No email list file available - skipping email notification"
+        );
+        return { success: false, message: "No email file available" };
+      }
+
+      const formData = new FormData();
+      formData.append("file", emailFile);
+      formData.append("subject", subject);
+      formData.append("body", body);
+
+      const response = await api.post("/Reminder/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      throw error;
+    }
+  };
+
   const resetForm = () => {
     setEventTitle("");
     setEventTime("");
+    setEventEndTime("");
     setMeetingLink("");
     setTrainer("");
     setOrganiser("");
     setVenue("");
     setEndingDate("");
     setShowClock(false);
+    setShowEndTimeClock(false);
   };
+
   const handleDeleteEvent = async (eventId) => {
     try {
       setIsLoading(true);
@@ -339,16 +416,14 @@ const CalendarComponent = () => {
 
       await api.delete(`/Calendars/${eventId}`);
       setEvents(events.filter((event) => event.id !== eventId));
-      console.log(globalEmailFile);
-      // Send cancellation email if we have a global email file
-      if (globalEmailFile && eventToDelete) {
-        console.log("Sending cancellation email for event:", eventToDelete);
+
+      if (emailFile && eventToDelete) {
         const cancellationSubject = `Event Canceled: ${eventToDelete.title}`;
         const cancellationBody = `The following event has been canceled:
 
 Event: ${eventToDelete.title}
 Date: ${eventToDelete.date}
-Time: ${eventToDelete.time}
+Time: ${eventToDelete.time} - ${eventToDelete.endTime}
 ${eventToDelete.venue ? `Venue: ${eventToDelete.venue}` : ""}
 
 We apologize for any inconvenience this may cause.`;
@@ -381,6 +456,7 @@ We apologize for any inconvenience this may cause.`;
       setIsLoading(false);
     }
   };
+
   const formatDateDisplay = (dateStr) => {
     const date = new Date(dateStr + "T00:00:00");
     return date.toLocaleDateString("en-US", {
@@ -391,7 +467,7 @@ We apologize for any inconvenience this may cause.`;
     });
   };
 
-  const handleClockTimeSelect = () => {
+  const handleClockTimeSelect = (isEndTime = false) => {
     const hours = isAM
       ? selectedHour === 12
         ? 0
@@ -402,11 +478,17 @@ We apologize for any inconvenience this may cause.`;
     const formattedTime = `${String(hours).padStart(2, "0")}:${String(
       selectedMinute
     ).padStart(2, "0")}`;
-    setEventTime(formattedTime);
+
+    if (isEndTime) {
+      setEventEndTime(formattedTime);
+    } else {
+      setEventTime(formattedTime);
+    }
     setShowClock(false);
+    setShowEndTimeClock(false);
   };
 
-  const renderClock = () => {
+  const renderClock = (isEndTime = false) => {
     const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
     const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
@@ -415,10 +497,12 @@ We apologize for any inconvenience this may cause.`;
         <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl border border-purple-100">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-purple-800">
-              Select Time
+              Select {isEndTime ? "End" : "Start"} Time
             </h3>
             <button
-              onClick={() => setShowClock(false)}
+              onClick={() =>
+                isEndTime ? setShowEndTimeClock(false) : setShowClock(false)
+              }
               className="p-1 rounded-full hover:bg-gray-100"
             >
               <X size={20} />
@@ -506,7 +590,7 @@ We apologize for any inconvenience this may cause.`;
           </div>
 
           <button
-            onClick={handleClockTimeSelect}
+            onClick={() => handleClockTimeSelect(isEndTime)}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-medium"
           >
             Select Time
@@ -591,7 +675,9 @@ We apologize for any inconvenience this may cause.`;
                   >
                     <div className="flex items-center space-x-1 mb-0.5">
                       <Clock size={8} />
-                      <span className="font-medium">{event.time}</span>
+                      <span className="font-medium">
+                        {event.time} - {event.endTime}
+                      </span>
                     </div>
                     <div className="font-medium truncate" title={event.title}>
                       {event.title}
@@ -613,6 +699,9 @@ We apologize for any inconvenience this may cause.`;
 
     const event = selectedEvent.rawData || selectedEvent;
     const eventDate = new Date(event.time || event.startingDate);
+    const eventEndDate = new Date(
+      event.End_time || event.time || event.startingDate
+    );
     const formattedDate = eventDate.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -623,10 +712,11 @@ We apologize for any inconvenience this may cause.`;
       hour: "2-digit",
       minute: "2-digit",
     });
+    console.log(formattedTime, eventEndTime);
 
     return (
       <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto   max-w-md shadow-2xl border border-purple-100">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto max-w-md shadow-2xl border border-purple-100">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-purple-800">
@@ -649,7 +739,10 @@ We apologize for any inconvenience this may cause.`;
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-500">Time</h4>
-                <p className="text-gray-800">{formattedTime}</p>
+                <p className="text-gray-800">
+                  {formattedTime} - {eventEndTime}
+                  {console.log(eventEndTime)}
+                </p>
               </div>
             </div>
 
@@ -799,8 +892,8 @@ We apologize for any inconvenience this may cause.`;
       </div>
 
       {showModal && (
-        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-5xl h-auto max-h-[85vh]  scrollbar-hide overflow-y-auto scrollvar-hide shadow-2xl border border-purple-100">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto shadow-2xl border border-purple-100">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-purple-800">Add Event</h3>
@@ -842,7 +935,7 @@ We apologize for any inconvenience this may cause.`;
                         <div className="font-semibold">{event.title}</div>
                         <div className="text-sm opacity-75 flex items-center mt-1">
                           <Clock size={12} className="mr-1" />
-                          {event.time}
+                          {event.time} - {event.endTime}
                         </div>
                       </div>
                       <button
@@ -874,25 +967,49 @@ We apologize for any inconvenience this may cause.`;
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={eventTime}
-                    readOnly
-                    placeholder="Select time"
-                    className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
-                    onClick={() => setShowClock(true)}
-                  />
-                  <button
-                    onClick={() => setShowClock(true)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-700"
-                  >
-                    <Clock size={20} />
-                  </button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Time
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={eventTime}
+                      readOnly
+                      placeholder="Select time"
+                      className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
+                      onClick={() => setShowClock(true)}
+                    />
+                    <button
+                      onClick={() => setShowClock(true)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-700"
+                    >
+                      <Clock size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Time
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={eventEndTime}
+                      readOnly
+                      placeholder="Select time"
+                      className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
+                      onClick={() => setShowEndTimeClock(true)}
+                    />
+                    <button
+                      onClick={() => setShowEndTimeClock(true)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-700"
+                    >
+                      <Clock size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -947,6 +1064,7 @@ We apologize for any inconvenience this may cause.`;
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -959,6 +1077,7 @@ We apologize for any inconvenience this may cause.`;
                   rows="3"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Teams Link
@@ -1021,6 +1140,7 @@ We apologize for any inconvenience this may cause.`;
       )}
 
       {showClock && renderClock()}
+      {showEndTimeClock && renderClock(true)}
       {showEventDetails && renderEventDetails()}
     </div>
   );
