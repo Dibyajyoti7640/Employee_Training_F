@@ -87,6 +87,66 @@ const CalendarComponent = () => {
       setIsLoading(false);
     }
   };
+  // const sendReminder = async (subject, body) => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("subject", subject);
+  //     formData.append("body", body);
+
+  //     const response = await api.post("/Reminder/upload", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Error sending reminder:", error);
+  //     throw error; // Re-throw the error to be caught in handleAddEvent
+  //   }
+  // };
+  const sendReminder = async (subject, body) => {
+    try {
+      const emailFile = globalEmailFile || file;
+      console.log("Sending reminder with file:", emailFile);
+      if (!emailFile) {
+        console.warn(
+          "No email list file available - skipping email notification"
+        );
+        return { success: false, message: "No email file available" };
+      }
+
+      const formData = new FormData();
+      formData.append("file", emailFile);
+      formData.append("subject", subject);
+      formData.append("body", body);
+
+      const response = await api.post("/Reminder/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      throw error;
+    }
+  };
+  const extractTimeFromDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return "00:00";
+
+    try {
+      const date = new Date(dateTimeStr);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Error extracting time:", error);
+      return "00:00";
+    }
+  };
 
   const normalizeDate = (dateStr) => {
     if (!dateStr) return null;
@@ -168,6 +228,8 @@ const CalendarComponent = () => {
       const eventStartDate = new Date(event.date);
       const eventEndDate = new Date(event.endingDate || event.date);
       const currentDate = new Date(dateStr);
+
+      // Check if the date is between start and end dates (inclusive)
       return currentDate >= eventStartDate && currentDate <= eventEndDate;
     });
 
@@ -416,8 +478,10 @@ const CalendarComponent = () => {
 
       await api.delete(`/Calendars/${eventId}`);
       setEvents(events.filter((event) => event.id !== eventId));
-
-      if (emailFile && eventToDelete) {
+      console.log(globalEmailFile);
+      // Send cancellation email if we have a global email file
+      if (globalEmailFile && eventToDelete) {
+        console.log("Sending cancellation email for event:", eventToDelete);
         const cancellationSubject = `Event Canceled: ${eventToDelete.title}`;
         const cancellationBody = `The following event has been canceled:
 
