@@ -6,6 +6,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 
 import AdminCourses from "./pages/Admin/Courses";
 import AdminCourseDetails from "./pages/Admin/CourseDetails";
+import AdminCourseEdit from "./pages/Admin/CourseEdit";
 import AdminEmployees from "./pages/Admin/Employees";
 import AdminQuizzes from "./pages/Admin/Quizzes";
 import AdminQuizResponses from "./pages/Admin/ViewQuiz";
@@ -43,6 +44,14 @@ function App() {
             element={
               <PrivateRoute role="Admin">
                 <AdminCourseDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="admin/courses/:courseId/edit"
+            element={
+              <PrivateRoute role="Admin">
+                <AdminCourseEdit />
               </PrivateRoute>
             }
           />
@@ -126,7 +135,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {console.log("something")};
           <Route
             path="employee/progress"
             element={

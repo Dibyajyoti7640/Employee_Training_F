@@ -249,7 +249,6 @@ const AdminCourseDetails = () => {
                 </div>
               </div>
             </div>
-
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4">
                 Quick Actions
@@ -259,10 +258,7 @@ const AdminCourseDetails = () => {
                   <Users size={16} />
                   View Participants
                 </button>
-                <button
-                  onClick={() => setMaterialModalOpen(true)}
-                  className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
+                <button className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                   <BookOpen size={16} />
                   Course Materials
                 </button>
