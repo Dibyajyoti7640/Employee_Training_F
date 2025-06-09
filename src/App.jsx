@@ -135,7 +135,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {console.log("something")};
           <Route
             path="employee/progress"
             element={

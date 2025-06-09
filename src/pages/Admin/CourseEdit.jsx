@@ -38,7 +38,7 @@ const AdminCourseEdit = () => {
         e.preventDefault();
         try {
             await api.put(`/TrainingPrograms/${courseId}`, course);
-            navigate(`/admin/courses/${courseId}`, {
+            navigate(`/dashboard/admin/courses/${courseId}`, {
                 state: { message: 'Course updated successfully' }
             });
         } catch (err) {

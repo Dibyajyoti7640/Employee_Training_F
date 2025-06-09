@@ -65,7 +65,7 @@ const AdminCourseDetails = () => {
     };
 
     const handleEdit = () => {
-        navigate(`/admin/courses/${courseId}/edit`);
+        navigate(`/dashboard/admin/courses/${courseId}/edit`);
     };
 
     const handleBack = () => {
@@ -236,17 +236,9 @@ const AdminCourseDetails = () => {
                         <div className="bg-white rounded-xl shadow-lg p-6">
                             <h2 className="text-xl font-bold text-slate-800 mb-4">Quick Actions</h2>
                             <div className="space-y-3">
-                                <button className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                                    <Users size={16} />
-                                    View Participants
-                                </button>
                                 <button className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     <BookOpen size={16} />
                                     Course Materials
-                                </button>
-                                <button className="w-full flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                    <CheckCircle size={16} />
-                                    Attendance
                                 </button>
                             </div>
                         </div>
