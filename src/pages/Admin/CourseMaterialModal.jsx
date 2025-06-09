@@ -187,6 +187,7 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
     }
   };
 
+  // another secret
   if (!isOpen) return null;
 
   return (
