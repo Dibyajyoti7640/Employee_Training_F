@@ -39,6 +39,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          {console.log("Shhhhhhh its a secret")}
           <Route
             path="admin/courses/:courseId"
             element={
