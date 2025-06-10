@@ -1,28 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import { motion } from 'framer-motion';
-import { User, Trash2, UserPlus, Search, X, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
+import { User, Trash2, UserPlus, Search, X, CheckCircle } from "lucide-react";
 
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
-  const [sortConfig, setSortConfig] = useState({ key: 'fullName', direction: 'ascending' });
-  
-  const [addEmployeeData, setAddEmployeeData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    role: '',
-    department: '',
+  const [searchTerm, setSearchTerm] = useState("");
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "",
   });
-  
+  const [sortConfig, setSortConfig] = useState({
+    key: "fullName",
+    direction: "ascending",
+  });
+
+  const [addEmployeeData, setAddEmployeeData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "",
+    department: "",
+  });
+
   const [showAddForm, setShowAddForm] = useState(false);
-  const departments = ['HR', 'Engineering', 'Microsoft', 'SAP', 'Salesforce', 'Marketing', 'Sales', 'Finance', 'Operations', 'Customer Support'];
-  const roles = ['Admin', 'Manager', 'Employee'];
+  const departments = [
+    "HR",
+    "Engineering",
+    "Microsoft",
+    "SAP",
+    "Salesforce",
+    "Marketing",
+    "Sales",
+    "Finance",
+    "Operations",
+    "Customer Support",
+  ];
+  const roles = ["Admin", "Manager", "Employee"];
 
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordErrors, setPasswordErrors] = useState([]);
@@ -30,7 +48,7 @@ const AdminEmployees = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
-  
+
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -42,17 +60,18 @@ const AdminEmployees = () => {
 
   const fetchEmployees = () => {
     setIsLoading(true);
-    api.get('/Users')
-      .then(response => {
+    api
+      .get("/Users")
+      .then((response) => {
         setEmployees(response.data);
         setIsLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
         setNotification({
           show: true,
-          message: 'Failed to fetch employees',
-          type: 'error'
+          message: "Failed to fetch employees",
+          type: "error",
         });
         setIsLoading(false);
       });
@@ -63,31 +82,31 @@ const AdminEmployees = () => {
     let strength = 0;
 
     if (password.length < 8) {
-      errors.push('Password must be at least 8 characters long');
+      errors.push("Password must be at least 8 characters long");
     } else {
       strength += 1;
     }
 
     if (!/[A-Z]/.test(password)) {
-      errors.push('Password must contain at least one uppercase letter');
+      errors.push("Password must contain at least one uppercase letter");
     } else {
       strength += 1;
     }
 
     if (!/[a-z]/.test(password)) {
-      errors.push('Password must contain at least one lowercase letter');
+      errors.push("Password must contain at least one lowercase letter");
     } else {
       strength += 1;
     }
 
     if (!/[0-9]/.test(password)) {
-      errors.push('Password must contain at least one number');
+      errors.push("Password must contain at least one number");
     } else {
       strength += 1;
     }
 
     if (!/[^A-Za-z0-9]/.test(password)) {
-      errors.push('Password must contain at least one special character');
+      errors.push("Password must contain at least one special character");
     } else {
       strength += 1;
     }
@@ -99,9 +118,9 @@ const AdminEmployees = () => {
 
   const handleAddInputChange = (e) => {
     const { name, value } = e.target;
-    setAddEmployeeData(prev => {
+    setAddEmployeeData((prev) => {
       const newData = { ...prev, [name]: value };
-      if (name === 'password') {
+      if (name === "password") {
         validatePassword(value);
       }
       return newData;
@@ -113,77 +132,79 @@ const AdminEmployees = () => {
     if (!validatePassword(addEmployeeData.password)) {
       setNotification({
         show: true,
-        message: 'Password does not meet requirements',
-        type: 'error'
+        message: "Password does not meet requirements",
+        type: "error",
       });
       return;
     }
 
     setIsLoading(true);
-    api.post('/auth/register', addEmployeeData)
-      .then(response => {
+    api
+      .post("/auth/register", addEmployeeData)
+      .then((response) => {
         const newEmployee = {
           ...response.data,
           department: addEmployeeData.department,
           role: addEmployeeData.role,
         };
-        setEmployees(prevEmployees => [...prevEmployees, newEmployee]);
+        setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
         setAddEmployeeData({
-          fullName: '',
-          email: '',
-          password: '',
-          role: '',
-          department: '',
+          fullName: "",
+          email: "",
+          password: "",
+          role: "",
+          department: "",
         });
         setShowAddForm(false);
         setPasswordStrength(0);
         setPasswordErrors([]);
         setNotification({
           show: true,
-          message: 'Employee added successfully!',
-          type: 'success'
+          message: "Employee added successfully!",
+          type: "success",
         });
         setIsLoading(false);
         console.log(addEmployeeData);
       })
       .then(() => {
-        api.post('/Email', {
-          "To": `${addEmployeeData.email}`,
-          "subject": "Account Created Successfully",
-          "body": `Your account has been created successfully.\nYour Credentials:\nEmail: ${addEmployeeData.email}\nPassword: ${addEmployeeData.password}` 
-        })
+        api.post("/Email", {
+          To: `${addEmployeeData.email}`,
+          subject: "Account Created Successfully",
+          body: `Your account has been created successfully.\nYour Credentials:\nEmail: ${addEmployeeData.email}\nPassword: ${addEmployeeData.password}`,
+        });
       })
 
-      .catch(error => {
-        console.error('Error adding employee:', error);
+      .catch((error) => {
+        console.error("Error adding employee:", error);
         setNotification({
           show: true,
-          message: 'Failed to add employee',
-          type: 'error'
+          message: "Failed to add employee",
+          type: "error",
         });
         setIsLoading(false);
       });
   };
 
   const handleDelete = (employeeId) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
       setIsLoading(true);
-      api.delete(`/Users/${employeeId}`)
+      api
+        .delete(`/Users/${employeeId}`)
         .then(() => {
-          setEmployees(employees.filter(emp => emp.userId !== employeeId));
+          setEmployees(employees.filter((emp) => emp.userId !== employeeId));
           setNotification({
             show: true,
-            message: 'Employee deleted successfully!',
-            type: 'success'
+            message: "Employee deleted successfully!",
+            type: "success",
           });
           setIsLoading(false);
         })
-        .catch(error => {
-          console.error('Error deleting employee:', error);
+        .catch((error) => {
+          console.error("Error deleting employee:", error);
           setNotification({
             show: true,
-            message: 'Failed to delete employee',
-            type: 'error'
+            message: "Failed to delete employee",
+            type: "error",
           });
           setIsLoading(false);
         });
@@ -191,71 +212,76 @@ const AdminEmployees = () => {
   };
 
   const requestSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
     }
     setSortConfig({ key, direction });
   };
 
   const sortedEmployees = [...employees].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) {
-      return sortConfig.direction === 'ascending' ? -1 : 1;
+      return sortConfig.direction === "ascending" ? -1 : 1;
     }
     if (a[sortConfig.key] > b[sortConfig.key]) {
-      return sortConfig.direction === 'ascending' ? 1 : -1;
+      return sortConfig.direction === "ascending" ? 1 : -1;
     }
     return 0;
   });
 
-  const filteredEmployees = sortedEmployees.filter(emp => 
-    emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEmployees = sortedEmployees.filter(
+    (emp) =>
+      emp.role !== "Admin" &&
+      (emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.role?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStrengthColor = () => {
     switch (passwordStrength) {
       case 0:
       case 1:
-        return 'bg-red-500';
+        return "bg-red-500";
       case 2:
       case 3:
-        return 'bg-yellow-500';
+        return "bg-yellow-500";
       case 4:
-        return 'bg-blue-500';
+        return "bg-blue-500";
       case 5:
-        return 'bg-green-500';
+        return "bg-green-500";
       default:
-        return 'bg-gray-300';
+        return "bg-gray-300";
     }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Employee Management</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          Employee Management
+        </h2>
         <p className="text-gray-600">Manage your organization's workforce</p>
       </div>
 
       {notification.show && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
-            notification.type === 'success' ? 'bg-green-100 text-green-800 border-l-4 border-green-500' : 
-            'bg-red-100 text-red-800 border-l-4 border-red-500'
+            notification.type === "success"
+              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+              : "bg-red-100 text-red-800 border-l-4 border-red-500"
           }`}
         >
-          {notification.type === 'success' ? (
+          {notification.type === "success" ? (
             <CheckCircle className="mr-2 h-5 w-5" />
           ) : (
             <X className="mr-2 h-5 w-5" />
           )}
           <span>{notification.message}</span>
-          <button 
+          <button
             onClick={() => setNotification({ ...notification, show: false })}
             className="ml-4 text-gray-500 hover:text-gray-700"
           >
@@ -301,15 +327,23 @@ const AdminEmployees = () => {
       {showAddForm && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           className="mb-8"
         >
-          <form onSubmit={handleAddEmployee} className="bg-white p-6 rounded-lg shadow-md" autoComplete="off">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Register New Employee</h3>
+          <form
+            onSubmit={handleAddEmployee}
+            className="bg-white p-6 rounded-lg shadow-md"
+            autoComplete="off"
+          >
+            <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
+              Register New Employee
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   name="fullName"
@@ -321,7 +355,9 @@ const AdminEmployees = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -333,7 +369,9 @@ const AdminEmployees = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
                 <input
                   type="password"
                   name="password"
@@ -358,7 +396,9 @@ const AdminEmployees = () => {
                 )}
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Department</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Department
+                </label>
                 <select
                   name="department"
                   value={addEmployeeData.department}
@@ -367,13 +407,17 @@ const AdminEmployees = () => {
                   required
                 >
                   <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Role
+                </label>
                 <select
                   name="role"
                   value={addEmployeeData.role}
@@ -382,8 +426,10 @@ const AdminEmployees = () => {
                   required
                 >
                   <option value="">Select Role</option>
-                  {roles.map(role => (
-                    <option key={role} value={role}>{role}</option>
+                  {roles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -395,8 +441,8 @@ const AdminEmployees = () => {
               disabled={passwordErrors.length > 0}
               className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${
                 passwordErrors.length > 0
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
               }`}
             >
               Register Employee
@@ -406,8 +452,10 @@ const AdminEmployees = () => {
       )}
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <h3 className="text-xl font-bold p-6 text-gray-800 border-b">Employee Directory</h3>
-        
+        <h3 className="text-xl font-bold p-6 text-gray-800 border-b">
+          Employee Directory
+        </h3>
+
         {isLoading ? (
           <div className="flex justify-center items-center p-10">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -417,65 +465,64 @@ const AdminEmployees = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => requestSort('fullName')}
+                    onClick={() => requestSort("fullName")}
                   >
                     <div className="flex items-center">
                       Name
-                      {sortConfig.key === 'fullName' && (
+                      {sortConfig.key === "fullName" && (
                         <span className="ml-1">
-                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                          {sortConfig.direction === "ascending" ? "↑" : "↓"}
                         </span>
                       )}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => requestSort('email')}
+                    onClick={() => requestSort("email")}
                   >
                     <div className="flex items-center">
                       Email
-                      {sortConfig.key === 'email' && (
+                      {sortConfig.key === "email" && (
                         <span className="ml-1">
-                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                          {sortConfig.direction === "ascending" ? "↑" : "↓"}
                         </span>
                       )}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => requestSort('department')}
+                    onClick={() => requestSort("department")}
                   >
                     <div className="flex items-center">
                       Department
-                      {sortConfig.key === 'department' && (
+                      {sortConfig.key === "department" && (
                         <span className="ml-1">
-                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                          {sortConfig.direction === "ascending" ? "↑" : "↓"}
                         </span>
                       )}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => requestSort('role')}
+                    onClick={() => requestSort("role")}
                   >
                     <div className="flex items-center">
                       Role
-                      {sortConfig.key === 'role' && (
+                      {sortConfig.key === "role" && (
                         <span className="ml-1">
-                          {sortConfig.direction === 'ascending' ? '↑' : '↓'}
+                          {sortConfig.direction === "ascending" ? "↑" : "↓"}
                         </span>
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEmployees.map((emp, index) => (
-                  <motion.tr 
+                  <motion.tr
                     key={emp.userId}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -488,7 +535,9 @@ const AdminEmployees = () => {
                           <User className="h-5 w-5" />
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{emp.fullName}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {emp.fullName}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -497,11 +546,11 @@ const AdminEmployees = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {emp.department || 'Not assigned'}
+                        {emp.department || "Not assigned"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {emp.role || 'Not assigned'}
+                      {emp.role || "Not assigned"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
@@ -522,7 +571,9 @@ const AdminEmployees = () => {
           </div>
         ) : (
           <div className="text-center p-10 text-gray-500">
-            {searchTerm ? 'No employees match your search criteria' : 'No employees found. Add your first employee!'}
+            {searchTerm
+              ? "No employees match your search criteria"
+              : "No employees found. Add your first employee!"}
           </div>
         )}
       </div>
