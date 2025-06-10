@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import CourseMaterialModal from '../../components/CourseMaterialModal';
 import api from '../../services/api';
 import {
     ArrowLeft,
@@ -29,6 +30,7 @@ const ManagerCourseDetails = () => {
     const [error, setError] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [materialModalOpen, setMaterialModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -65,7 +67,7 @@ const ManagerCourseDetails = () => {
     };
 
     const handleEdit = () => {
-        navigate(`/admin/courses/${courseId}/edit`);
+        navigate(`/dashboard/manager/courses/${courseId}/edit`);
     };
 
     const handleBack = () => {
@@ -236,17 +238,9 @@ const ManagerCourseDetails = () => {
                         <div className="bg-white rounded-xl shadow-lg p-6">
                             <h2 className="text-xl font-bold text-slate-800 mb-4">Quick Actions</h2>
                             <div className="space-y-3">
-                                <button className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                                    <Users size={16} />
-                                    View Participants
-                                </button>
-                                <button className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <button onClick={() => setMaterialModalOpen(true)} className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     <BookOpen size={16} />
                                     Course Materials
-                                </button>
-                                <button className="w-full flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                    <CheckCircle size={16} />
-                                    Attendance
                                 </button>
                             </div>
                         </div>
@@ -343,6 +337,13 @@ const ManagerCourseDetails = () => {
                         </div>
                     </div>
                 )}
+
+                <CourseMaterialModal
+                    isOpen={materialModalOpen}
+                    onClose={() => setMaterialModalOpen(false)}
+                    courseId={courseId}
+                    courseTitle={course.title}
+                />
             </div>
         </div>
     );

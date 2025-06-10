@@ -13,6 +13,7 @@ import AdminQuizResponses from "./pages/Admin/ViewQuiz";
 
 import ManagerCourses from "./pages/Manager/Courses";
 import ManagerCourseDetails from "./pages/Manager/CourseDetails";
+import ManagerCourseEdit from "./pages/Manager/CourseEdit";
 import ManagerEmployees from "./pages/Manager/Employees";
 import ManagerQuizzes from "./pages/Manager/Quizzes";
 import ManagerQuizResponses from "./pages/Manager/ViewQuiz";
@@ -93,6 +94,14 @@ function App() {
             element={
               <PrivateRoute role="Manager">
                 <ManagerCourseDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="manager/courses/:courseId/edit"
+            element={
+              <PrivateRoute role="Manager">
+                <ManagerCourseEdit />
               </PrivateRoute>
             }
           />

@@ -8,7 +8,7 @@ import {
   Trash2,
   Download,
 } from "lucide-react";
-import api from "../../services/api";
+import api from "../services/api";
 
 const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
   const [materials, setMaterials] = useState([]);
@@ -18,7 +18,6 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
 
-  // Fetch existing materials when modal opens
   React.useEffect(() => {
     if (isOpen && courseId) {
       fetchMaterials();
@@ -44,7 +43,7 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    const maxSize = 10 * 1024 * 1024;
 
     if (file.size > maxSize) {
       alert("File size must be less than 10MB");
@@ -73,7 +72,6 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
       formData.append("file", file);
       formData.append("courseID", courseId);
 
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
@@ -93,7 +91,6 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      // Add new material to the list
       const newMaterial = {
         id: response.data.id,
         documentName: file.name,
@@ -187,7 +184,6 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
     }
   };
 
-  // another secret
   if (!isOpen) return null;
 
   return (
@@ -217,11 +213,10 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
             </h3>
 
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
-                dragActive
-                  ? "border-emerald-500 bg-emerald-50"
-                  : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
-              }`}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${dragActive
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}

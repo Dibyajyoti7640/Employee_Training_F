@@ -23,13 +23,13 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const success = await login({ email, password });
       console.log(success);
-      
+
       if (success.success == true) {
         navigate('/dashboard');
       } else {
@@ -48,7 +48,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-      <div 
+      <div
         className={`mb-10 text-center transform transition-all duration-1000 ${animateTitle ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12'}`}
       >
         <div className="flex items-center justify-center mb-4">
@@ -63,11 +63,11 @@ const Login = () => {
       </div>
 
       <div className="w-full max-w-md px-6 py-2 relative">
-        <div className="absolute -top-20 -left-20 w-32 h-32 bg-blue-100 rounded-full opacity-60 animate-float"></div>
+        <div className="absolute -top-13 -left-40 w-32 h-32 bg-blue-100 rounded-full opacity-60 animate-float"></div>
         <div className="absolute top-60 -right-16 w-28 h-28 bg-purple-100 rounded-full opacity-50 animate-float-delayed"></div>
         <div className="absolute -bottom-16 left-32 w-36 h-36 bg-indigo-100 rounded-full opacity-40 animate-float-slow"></div>
-        
-        <div 
+
+        <div
           className="bg-white backdrop-filter backdrop-blur-sm bg-opacity-95 rounded-xl shadow-xl overflow-hidden transition-all duration-500 transform hover:shadow-2xl border border-gray-100"
           style={{
             animation: "fadeIn 0.8s ease-out",
@@ -76,9 +76,9 @@ const Login = () => {
           <div className="bg-gradient-to-r from-indigo-100 via-purple-100 to-indigo-100 px-8 py-6 border-b border-gray-100 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 opacity-80"></div>
             <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-            
+
             <div className="relative">
-              <h2 
+              <h2
                 className="text-3xl font-bold text-center text-gray-800"
                 style={{
                   animation: "slideDown 0.5s ease-out forwards",
@@ -92,7 +92,7 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             {error && (
-              <div 
+              <div
                 className="bg-red-50 text-red-600 p-4 rounded-md text-sm border-l-4 border-red-500"
                 style={{
                   animation: "shake 0.5s cubic-bezier(.36,.07,.19,.97) both, pulseRedFade 3s infinite",
@@ -106,8 +106,8 @@ const Login = () => {
                 </div>
               </div>
             )}
-            
-            <div 
+
+            <div
               className="relative group"
               style={{
                 animation: "slideUp 0.5s ease-out 0.1s both",
@@ -116,7 +116,7 @@ const Login = () => {
               <label className="text-base font-medium text-gray-700 mb-2 block transform -translate-y-0 opacity-100 transition-all duration-300 group-focus-within:text-indigo-600">
                 Email Address
               </label>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 transition-colors duration-300 group-hover:text-indigo-500" style={{top: '32px'}}>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 transition-colors duration-300 group-hover:text-indigo-500" style={{ top: '32px' }}>
                 <Mail size={20} />
               </div>
               <input
@@ -130,7 +130,7 @@ const Login = () => {
               <div className="h-0.5 w-0 bg-indigo-500 group-hover:w-full transition-all duration-300 mt-1"></div>
             </div>
 
-            <div 
+            <div
               className="relative group"
               style={{
                 animation: "slideUp 0.5s ease-out 0.2s both",
@@ -139,7 +139,7 @@ const Login = () => {
               <label className="text-base font-medium text-gray-700 mb-2 block transform -translate-y-0 opacity-100 transition-all duration-300 group-focus-within:text-indigo-600">
                 Password
               </label>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 transition-colors duration-300 group-hover:text-indigo-500" style={{top: '32px'}}>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 transition-colors duration-300 group-hover:text-indigo-500" style={{ top: '32px' }}>
                 <Lock size={20} />
               </div>
               <input
@@ -150,31 +150,31 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button 
-                type="button" 
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-indigo-600 transition-colors" 
-                style={{top: '32px'}}
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-indigo-600 transition-colors"
+                style={{ top: '32px' }}
                 onClick={togglePasswordVisibility}
               >
-                {showPassword ? 
-                  <EyeOff size={20} className="animate-pulse-subtle" /> : 
+                {showPassword ?
+                  <EyeOff size={20} className="animate-pulse-subtle" /> :
                   <Eye size={20} className="animate-pulse-subtle" />}
               </button>
               <div className="h-0.5 w-0 bg-indigo-500 group-hover:w-full transition-all duration-300 mt-1"></div>
             </div>
 
-            <div 
+            <div
               style={{
                 animation: "slideUp 0.5s ease-out 0.4s both",
                 marginTop: "32px"
               }}
             >
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="relative w-full py-4 px-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-lg font-medium rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-500 overflow-hidden group disabled:opacity-70"
                 disabled={isLoading}
               >
-                <span 
+                <span
                   className={`flex justify-center items-center ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
                 >
                   <span>Sign In</span>
@@ -193,7 +193,7 @@ const Login = () => {
             </div>
           </form>
         </div>
-        
+
         <div className="text-center text-gray-500 text-sm mt-6 opacity-70">
           Employee Training & Development System v1.0
         </div>
