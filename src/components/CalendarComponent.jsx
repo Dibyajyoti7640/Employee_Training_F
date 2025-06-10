@@ -716,7 +716,7 @@ We apologize for any inconvenience this may cause.`;
 
     return (
       <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto max-w-md shadow-2xl border border-purple-100">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto  shadow-2xl border border-purple-100">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-purple-800">
