@@ -145,6 +145,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          {console.log("meow")}
           <Route
             path="employee/progress"
             element={
