@@ -19,6 +19,7 @@ import ManagerQuizzes from "./pages/Manager/Quizzes";
 import ManagerQuizResponses from "./pages/Manager/ViewQuiz";
 
 import EmployeeCourses from "./pages/Employee/Courses";
+import EmployeeCourseDetails from "./pages/Employee/CourseDetails";
 import EmployeeRegister from "./pages/Employee/Register";
 import EmployeeProgress from "./pages/Employee/Progress";
 import EmployeeQuiz from "./pages/Employee/Quizzes";
@@ -138,6 +139,14 @@ function App() {
             }
           />
           <Route
+            path="employee/courses/:courseId"
+            element={
+              <PrivateRoute role="Employee">
+                <EmployeeCourseDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="employee/register"
             element={
               <PrivateRoute role="Employee">
@@ -145,7 +154,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          {console.log("meow")}
           <Route
             path="employee/progress"
             element={

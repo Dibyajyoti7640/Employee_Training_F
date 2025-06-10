@@ -10,13 +10,15 @@ import {
 } from "lucide-react";
 import api from "../services/api";
 
-const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
+const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle, userRole }) => {
   const [materials, setMaterials] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
+
+  const isEmployee = userRole === "Employee";
 
   React.useEffect(() => {
     if (isOpen && courseId) {
@@ -161,7 +163,7 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    if (!isEmployee && e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files);
     }
   };
@@ -189,12 +191,16 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-opacity-100 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Course Materials</h2>
               <p className="text-emerald-100 mt-1">{courseTitle}</p>
+              {isEmployee && (
+                <p className="text-emerald-200 text-sm mt-1">
+                  View Only Access
+                </p>
+              )}
             </div>
             <button
               onClick={onClose}
@@ -206,67 +212,67 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
         </div>
 
         <div className="p-6 max-h-[70vh] overflow-y-auto">
-          {/* Upload Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Upload New Material
-            </h3>
+          {!isEmployee && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                Upload New Material
+              </h3>
 
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${dragActive
-                ? "border-emerald-500 bg-emerald-50"
-                : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
-                }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              {uploading ? (
-                <div className="space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mx-auto"></div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${dragActive
+                  ? "border-emerald-500 bg-emerald-50"
+                  : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
+                  }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                {uploading ? (
+                  <div className="space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mx-auto"></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-slate-600">
+                      Uploading... {uploadProgress}%
+                    </p>
                   </div>
-                  <p className="text-slate-600">
-                    Uploading... {uploadProgress}%
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <Upload size={48} className="text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600 mb-2">
-                    Drag and drop your files here, or{" "}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-emerald-600 hover:text-emerald-700 font-medium"
-                    >
-                      browse
-                    </button>
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    Supports PDF, Word, PowerPoint, and text files (max 10MB)
-                  </p>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Upload size={48} className="text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-600 mb-2">
+                      Drag and drop your files here, or{" "}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-emerald-600 hover:text-emerald-700 font-medium"
+                      >
+                        browse
+                      </button>
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Supports PDF, Word, PowerPoint, and text files (max 10MB)
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
+                onChange={(e) => handleFileUpload(e.target.files)}
+              />
             </div>
+          )}
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
-              onChange={(e) => handleFileUpload(e.target.files)}
-            />
-          </div>
-
-          {/* Materials List */}
           <div>
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Existing Materials ({materials.length})
+              {isEmployee ? "Available Materials" : "Existing Materials"} ({materials.length})
             </h3>
 
             {loading ? (
@@ -302,13 +308,15 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
                         <Download size={14} />
                         Download
                       </button>
-                      <button
-                        onClick={() => handleDelete(material.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
+                      {!isEmployee && (
+                        <button
+                          onClick={() => handleDelete(material.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -316,14 +324,15 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle }) => {
             ) : (
               <div className="text-center py-8 text-slate-500">
                 <File size={48} className="mx-auto mb-4 text-slate-300" />
-                <p>No materials uploaded yet</p>
-                <p className="text-sm">Upload your first material above</p>
+                <p>No materials available</p>
+                {!isEmployee && (
+                  <p className="text-sm">Upload your first material above</p>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer */}
         <div className="bg-slate-50 px-6 py-4 flex justify-end">
           <button
             onClick={onClose}
