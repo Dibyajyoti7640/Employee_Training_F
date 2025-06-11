@@ -210,19 +210,6 @@ const ManagerCourseDetails = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <BookOpen size={24} className="text-emerald-600" />
-              Course Overview
-            </h2>
-            <div className="prose max-w-none">
-              <p className="text-slate-700 leading-relaxed text-lg">
-                {course.description ||
-                  "No description provided for this course."}
-              </p>
-            </div>
-          </div>
-
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
               <Calendar size={24} className="text-emerald-600" />
