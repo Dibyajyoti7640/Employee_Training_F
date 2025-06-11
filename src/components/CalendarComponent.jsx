@@ -41,16 +41,9 @@ const CalendarComponent = () => {
     clock,
   } = useSelector((state) => state.calendar);
 
-  // Destructure clock state from calendar.clock
-  const {
-    showClock,
-    showEndTimeClock,
-    selectedHour,
-    selectedMinute,
-    isAM,
-  } = clock;
+  const { showClock, showEndTimeClock, selectedHour, selectedMinute, isAM } =
+    clock;
 
-  // Local state for UI components
   const [showModal, setShowModal] = useState(false);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [file, setFile] = useState(null);
@@ -492,9 +485,7 @@ We apologize for any inconvenience this may cause.`;
                       transform: "translate(-50%, -50%)",
                     }}
                     onClick={() =>
-                      dispatch(
-                        setClockTime({ selectedHour: hour })
-                      )
+                      dispatch(setClockTime({ selectedHour: hour }))
                     }
                   >
                     {hour}
@@ -520,9 +511,7 @@ We apologize for any inconvenience this may cause.`;
                       transform: "translate(-50%, -50%)",
                     }}
                     onClick={() =>
-                      dispatch(
-                        setClockTime({ selectedMinute: minute })
-                      )
+                      dispatch(setClockTime({ selectedMinute: minute }))
                     }
                   >
                     {minute}
@@ -536,20 +525,19 @@ We apologize for any inconvenience this may cause.`;
 
           <div className="flex justify-center space-x-4 mb-4">
             <button
-              className={`px-4 py-2 rounded-lg ${isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-                }`}
-              onClick={() =>
-                dispatch(setClockTime({ isAM: true }))
-              }
+              className={`px-4 py-2 rounded-lg ${
+                isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+              }`}
+              onClick={() => dispatch(setClockTime({ isAM: true }))}
             >
               AM
             </button>
             <button
-              className={`px-4 py-2 rounded-lg ${!isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-                }`}
-              onClick={() =>
-                dispatch(setClockTime({ isAM: false }))
-              }
+
+              className={`px-4 py-2 rounded-lg ${
+                !isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+              }`}
+              onClick={() => dispatch(setClockTime({ isAM: false }))}
             >
               PM
             </button>

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+// import { useAuth } from "../context/AuthContext";
+import { setUser } from "../Slices/AuthSlice";
 import {
   Briefcase,
   Users,
@@ -10,9 +11,14 @@ import {
   BarChart2,
   CalendarIcon,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const Sidebar = ({ collapsed = false }) => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  console.log("Sidebar user:", user);
+  // const User = localStorage.getItem("user");
+  // console.log("Sidebar User from localStorage:", User);
   const location = useLocation();
   const navigate = useNavigate();
 

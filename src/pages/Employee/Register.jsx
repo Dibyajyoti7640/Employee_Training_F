@@ -1,36 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import { Check, Info, AlertCircle, ArrowRight, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import api from "../../services/api";
+import { setUser } from "../../Slices/AuthSlice";
+import { Check, Info, AlertCircle, ArrowRight, Calendar } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const EmployeeRegister = () => {
   const [courses, setCourses] = useState([]);
   const [registeredCourses, setRegisteredCourses] = useState([]);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [selectedOption, setSelectedOption] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState({ type: '', message: '' });
+  const [popupMessage, setPopupMessage] = useState({ type: "", message: "" });
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const coursesResponse = await api.get('/TrainingPrograms');
+        const coursesResponse = await api.get("/TrainingPrograms");
         setCourses(coursesResponse.data);
 
         try {
-          const registrationsResponse = await api.get(`/registrations/user/${user.userId}`);
-          const registeredProgramIds = registrationsResponse.data.map(reg => reg.programId);
+          const registrationsResponse = await api.get(
+            `/registrations/user/${user.userId}`
+          );
+          const registeredProgramIds = registrationsResponse.data.map(
+            (reg) => reg.programId
+          );
           setRegisteredCourses(registeredProgramIds);
         } catch (regError) {
-          console.warn('No registrations found for user:', regError);
+          console.warn("No registrations found for user:", regError);
           setRegisteredCourses([]);
         }
       } catch (err) {
-        setError('Failed to load data. Please try again later.');
+        setError("Failed to load data. Please try again later.");
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -49,7 +54,7 @@ const EmployeeRegister = () => {
     setSelectedOption(courseId);
 
     if (courseId) {
-      const course = courses.find(c => c.programId === courseId);
+      const course = courses.find((c) => c.programId === courseId);
       setSelectedCourse(course);
     } else {
       setSelectedCourse(null);
@@ -61,8 +66,8 @@ const EmployeeRegister = () => {
 
     if (!selectedOption) {
       setPopupMessage({
-        type: 'error',
-        message: 'Please select a course to register'
+        type: "error",
+        message: "Please select a course to register",
       });
       setShowPopup(true);
       return;
@@ -70,8 +75,8 @@ const EmployeeRegister = () => {
 
     if (registeredCourses.includes(selectedOption)) {
       setPopupMessage({
-        type: 'info',
-        message: 'You are already registered for this course!'
+        type: "info",
+        message: "You are already registered for this course!",
       });
       setShowPopup(true);
       return;
@@ -80,14 +85,22 @@ const EmployeeRegister = () => {
     setIsLoading(true);
 
     try {
+
       const response = await api.post('/registrations', {
         userId: user.userId,
         programId: selectedOption
       });
       setPopupMessage({
-        type: 'success',
-        message: 'Successfully registered for the course!'
+        type: "success",
+        message: "Successfully registered for the course!",
       });
+      console.log(selectedCourse);
+      const res = await api.post("/Email", {
+        To: `${user.email}`,
+        subject: "Registration Succesful",
+        body: `You have been successfully registered for the course on ${selectedCourse.title}.`,
+      });
+
 
       const res = await api.post('/Email', {
         "To": `${user.email}`,
@@ -96,13 +109,13 @@ const EmployeeRegister = () => {
       })
       setRegisteredCourses([...registeredCourses, selectedOption]);
       setShowPopup(true);
-      setSelectedOption('');
+      setSelectedOption("");
       setSelectedCourse(null);
     } catch (error) {
       console.error(error);
       setPopupMessage({
-        type: 'error',
-        message: 'Registration failed. Please try again later.'
+        type: "error",
+        message: "Registration failed. Please try again later.",
       });
       setShowPopup(true);
     } finally {
@@ -115,7 +128,7 @@ const EmployeeRegister = () => {
   };
 
   const resetSelection = () => {
-    setSelectedOption('');
+    setSelectedOption("");
     setSelectedCourse(null);
   };
 
@@ -169,7 +182,10 @@ const EmployeeRegister = () => {
                 className="mb-6"
                 style={{ animation: "slideUp 0.5s ease-out 0.2s both" }}
               >
-                <label className="block text-gray-700 font-medium mb-2" htmlFor="course-select">
+                <label
+                  className="block text-gray-700 font-medium mb-2"
+                  htmlFor="course-select"
+                >
                   Available Courses
                 </label>
                 <div className="relative">
@@ -181,6 +197,7 @@ const EmployeeRegister = () => {
                     disabled={isLoading}
                   >
                     <option value="">-- Select a training program --</option>
+
                     {courses.map(course => (
                       <option
                         key={course.programId}
@@ -188,13 +205,24 @@ const EmployeeRegister = () => {
                         disabled={registeredCourses.includes(course.programId)}
                       >
                         {course.title}
-                        {registeredCourses.includes(course.programId) && " (Already Registered)"}
+                        {registeredCourses.includes(course.programId) &&
+                          " (Already Registered)"}
                       </option>
                     ))}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -209,16 +237,20 @@ const EmployeeRegister = () => {
                     {selectedCourse.title}
                   </h3>
                   <p className="text-gray-700 text-sm mb-3">
-                    {selectedCourse.description || "Learn essential skills and knowledge in this comprehensive training program."}
+                    {selectedCourse.description ||
+                      "Learn essential skills and knowledge in this comprehensive training program."}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-2">
                     <div className="flex items-center text-gray-600">
                       <Calendar size={16} className="mr-2 text-indigo-500" />
-                      <span>{selectedCourse.startDate || "Flexible start date"}</span>
+                      <span>
+                        {selectedCourse.startDate || "Flexible start date"}
+                      </span>
                     </div>
                   </div>
                   <div className="mt-2 text-sm text-indigo-700 font-medium">
-                    Registration will give you access to all course materials and resources.
+                    Registration will give you access to all course materials
+                    and resources.
                   </div>
                 </div>
               )}
@@ -237,20 +269,43 @@ const EmployeeRegister = () => {
                 <button
                   type="submit"
                   className="group relative px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-medium rounded-md shadow-sm hover:from-indigo-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-70"
-                  disabled={isLoading || !selectedOption || registeredCourses.includes(selectedOption)}
+                  disabled={
+                    isLoading ||
+                    !selectedOption ||
+                    registeredCourses.includes(selectedOption)
+                  }
                 >
                   {isLoading ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Processing...
                     </span>
                   ) : (
                     <span className="flex items-center">
                       Register Now
-                      <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight
+                        size={16}
+                        className="ml-2 group-hover:translate-x-1 transition-transform"
+                      />
                     </span>
                   )}
                 </button>
@@ -261,9 +316,14 @@ const EmployeeRegister = () => {
                   className="mt-8 pt-6 border-t border-gray-100"
                   style={{ animation: "fadeIn 0.5s ease-out 0.4s both" }}
                 >
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Available Programs</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Available Programs
+                  </h3>
                   {courses.length === 0 ? (
-                    <p className="text-gray-600 text-center">No courses registered yet. Select a course above to get started!</p>
+                    <p className="text-gray-600 text-center">
+                      No courses registered yet. Select a course above to get
+                      started!
+                    </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {courses.slice(0, 4).map(course => (
@@ -277,18 +337,22 @@ const EmployeeRegister = () => {
                             if (!registeredCourses.includes(course.programId)) {
                               setSelectedOption(course.programId);
                               setSelectedCourse(course);
-                              document.getElementById('course-select').scrollIntoView({ behavior: 'smooth' });
+                              document
+                                .getElementById("course-select")
+                                .scrollIntoView({ behavior: "smooth" });
                             }
                           }}
                         >
                           <h4 className="font-medium text-gray-800">
                             {course.title}
+
                             {registeredCourses.includes(course.programId) &&
                               <span className="text-sm text-green-600 ml-2">(Registered)</span>
                             }
                           </h4>
                           <p className="text-sm text-gray-600 mt-1 truncate">
-                            {course.description || "Enhance your skills with this comprehensive training program."}
+                            {course.description ||
+                              "Enhance your skills with this comprehensive training program."}
                           </p>
                         </div>
                       ))}
@@ -315,7 +379,7 @@ const EmployeeRegister = () => {
           <div
             className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden"
             style={{ animation: "scaleIn 0.3s ease-out" }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className={`p-1 ${popupMessage.type === 'success' ? 'bg-green-500' :
                 popupMessage.type === 'info' ? 'bg-blue-500' : 'bg-red-500'
@@ -336,9 +400,7 @@ const EmployeeRegister = () => {
                       popupMessage.type === 'info' ? 'Already Registered' :
                         'Registration Failed'}
                   </h3>
-                  <p className="mt-2 text-gray-600">
-                    {popupMessage.message}
-                  </p>
+                  <p className="mt-2 text-gray-600">{popupMessage.message}</p>
                   <div className="mt-4">
                     <button
                       type="button"
@@ -363,23 +425,45 @@ const EmployeeRegister = () => {
 
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
-        
+
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
       `}</style>
     </div>

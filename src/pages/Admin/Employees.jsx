@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
 import api from "../../services/api";
-import { useAuth } from "../../context/AuthContext";
 import { motion } from "framer-motion";
-import { User, Trash2, UserPlus, Search, X, CheckCircle, Edit2, Save } from "lucide-react";
+import {
+  User,
+  Trash2,
+  UserPlus,
+  Search,
+  X,
+  CheckCircle,
+  Edit2,
+  Save,
+} from "lucide-react";
 
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState({
@@ -27,7 +34,6 @@ const AdminEmployees = () => {
     department: "",
   });
 
-  // Edit functionality state
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editEmployeeData, setEditEmployeeData] = useState({
     fullName: "",
@@ -162,9 +168,7 @@ const AdminEmployees = () => {
       // Update the employee in the local state
       setEmployees((prevEmployees) =>
         prevEmployees.map((emp) =>
-          emp.userId === employeeId
-            ? { ...emp, ...editEmployeeData }
-            : emp
+          emp.userId === employeeId ? { ...emp, ...editEmployeeData } : emp
         )
       );
 
@@ -345,10 +349,11 @@ const AdminEmployees = () => {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${notification.type === "success"
-            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-            : "bg-red-100 text-red-800 border-l-4 border-red-500"
-            }`}
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
+            notification.type === "success"
+              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+              : "bg-red-100 text-red-800 border-l-4 border-red-500"
+          }`}
         >
           {notification.type === "success" ? (
             <CheckCircle className="mr-2 h-5 w-5" />
@@ -514,10 +519,11 @@ const AdminEmployees = () => {
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={passwordErrors.length > 0}
-              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${passwordErrors.length > 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 text-white hover:bg-green-700"
-                }`}
+              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${
+                passwordErrors.length > 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }`}
             >
               Register Employee
             </motion.button>
@@ -591,7 +597,9 @@ const AdminEmployees = () => {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">

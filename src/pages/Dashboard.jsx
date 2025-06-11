@@ -1,24 +1,28 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { useAuth } from "../context/AuthContext";
+import { logout } from "../Slices/AuthSlice";
 import { Menu, X } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
-// import ThemeToggle from '../components/ThemeToggle';
+import { useDispatch } from "react-redux";
 
 const Dashboard = () => {
-  const { logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
   const [isUserDropdownVisible, setIsUserDropdownVisible] = useState(false);
   const avatarRef = useRef(null);
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const user = localStorage.getItem("user");
   const token = localStorage.getItem("authToken");
   const decoded = jwtDecode(token);
-
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
   const getPageTitle = () => {
     const path = location.pathname.split("/").pop();
     if (!path) return "Dashboard";
@@ -37,12 +41,12 @@ const Dashboard = () => {
     if (!user) return "nn";
     const name = decoded.name || decoded.email || "Unknown";
 
-    if (name.includes('@')) {
-      const emailPrefix = name.split('@')[0];
+    if (name.includes("@")) {
+      const emailPrefix = name.split("@")[0];
       return emailPrefix.slice(0, 2).toUpperCase();
     }
 
-    const nameParts = name.trim().split(' ');
+    const nameParts = name.trim().split(" ");
     if (nameParts.length >= 2) {
       return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
     }
@@ -96,14 +100,16 @@ const Dashboard = () => {
         <ThemeToggle />
       </div> */}
       <div
-        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={toggleMobileMenu}
       />
 
       <div
-        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <Sidebar />
         <button
@@ -137,7 +143,9 @@ const Dashboard = () => {
                   aria-expanded={isUserDropdownVisible}
                   aria-haspopup="true"
                   style={{
-                    backgroundColor: getRandomPastelColor(user?.email || user?.name || "default"),
+                    backgroundColor: getRandomPastelColor(
+                      user?.email || user?.name || "default"
+                    ),
                   }}
                 >
                   <span className="text-sm font-semibold text-black">
@@ -146,10 +154,11 @@ const Dashboard = () => {
                 </button>
 
                 <div
-                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${isUserDropdownVisible
-                    ? "scale-100 opacity-100"
-                    : "scale-95 opacity-0 pointer-events-none"
-                    }`}
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${
+                    isUserDropdownVisible
+                      ? "scale-100 opacity-100"
+                      : "scale-95 opacity-0 pointer-events-none"
+                  }`}
                 >
                   <div className="p-3 border-b">
                     <p className="font-medium text-gray-800 truncate">
@@ -161,7 +170,7 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
                     >
                       Logout
