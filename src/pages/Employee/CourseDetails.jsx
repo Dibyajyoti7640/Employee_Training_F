@@ -264,7 +264,6 @@ const EmployeeCourseDetails = () => {
                     </div>
                 </div>
             </div>
-
             <CourseMaterialModal
                 isOpen={materialModalOpen}
                 onClose={() => setMaterialModalOpen(false)}

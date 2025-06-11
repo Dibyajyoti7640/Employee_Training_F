@@ -541,6 +541,25 @@ const AdminCourseDetails = () => {
                     </h2>
                     <p className="text-slate-600 mb-6">
                         {error || "The course you are looking for does not exist."}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Calendar size={24} className="text-emerald-600" />
+                  Schedule & Timeline
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Calendar size={20} className="text-blue-600" />
+                      <h3 className="font-semibold text-slate-800">
+                        Start Date
+                      </h3>
+                    </div>
+                    <p className="text-slate-700 font-medium">
+                      {formatDate(course.startDate)}
                     </p>
                     <button
                         onClick={handleBack}
