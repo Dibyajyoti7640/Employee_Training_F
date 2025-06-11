@@ -143,20 +143,21 @@ const EmployeeCourseDetails = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors mb-4 group"
-          >
-            <ArrowLeft
-              size={20}
-              className="group-hover:-translate-x-1 transition-transform"
-            />
-            <span>Back to Courses</span>
-          </button>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <BookOpen size={24} className="text-emerald-600" />
+                                Course Overview
+                            </h2>
+                            <div className="prose max-w-none">
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: course.description.replace(/\n/g, '<br/>') }}
+                                />
+                            </div>
+                        </div>
 
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>

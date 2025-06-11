@@ -18,6 +18,7 @@ const EmployeeCourses = () => {
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -26,6 +27,12 @@ const EmployeeCourses = () => {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [categories, setCategories] = useState([]);
   const { user } = useSelector((state) => state.auth);
+
+  const [stats, setStats] = useState({
+    completed: 0,
+    inProgress: 0,
+    certificates: 0
+  });
   const navigate = useNavigate();
 
   const predefinedCategories = [
@@ -34,6 +41,53 @@ const EmployeeCourses = () => {
     "Soft Skills",
     "Compliance",
   ];
+
+  const getCourseStatus = (course) => {
+    if (!course.endDate) return 'ongoing';
+    const currentDate = new Date();
+    const endDate = new Date(course.endDate);
+
+    if (currentDate > endDate) {
+      return 'completed';
+    }
+
+    return 'in_progress';
+  };
+
+  const calculateStats = (courses) => {
+    let completed = 0;
+    let inProgress = 0;
+    let certificates = 0;
+
+    courses.forEach(course => {
+      const status = getCourseStatus(course);
+
+      switch (status) {
+        case 'completed':
+          completed++;
+          if (course.certificateAvailable !== false) {
+            certificates++;
+          }
+          break;
+        case 'in_progress':
+        case 'ongoing':
+          inProgress++;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return { completed, inProgress, certificates };
+  };
+
+  const handleStatusFilter = (status) => {
+    if (selectedStatus === status) {
+      setSelectedStatus('all');
+    } else {
+      setSelectedStatus(status);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -48,16 +102,12 @@ const EmployeeCourses = () => {
         setCourses(response.data);
         setFilteredCourses(response.data);
 
-        // Extract unique categories from courses
-        const uniqueCategories = [
-          ...new Set(response.data.map((course) => course.category)),
-        ].filter(Boolean);
-        setCategories([
-          ...predefinedCategories,
-          ...uniqueCategories.filter(
-            (cat) => !predefinedCategories.includes(cat)
-          ),
-        ]);
+
+        const newStats = calculateStats(response.data);
+        setStats(newStats);
+
+        const uniqueCategories = [...new Set(response.data.map(course => course.category))].filter(Boolean);
+        setCategories([...predefinedCategories, ...uniqueCategories.filter(cat => !predefinedCategories.includes(cat))]);
       } catch (err) {
         setError("Failed to load courses. Please try again later.");
         console.error(err);
@@ -76,6 +126,18 @@ const EmployeeCourses = () => {
       result = result.filter((course) => course.category === selectedCategory);
     }
 
+    if (selectedStatus !== 'all') {
+      result = result.filter(course => {
+        const courseStatus = getCourseStatus(course);
+        if (selectedStatus === 'completed') {
+          return courseStatus === 'completed';
+        } else if (selectedStatus === 'in_progress') {
+          return courseStatus === 'in_progress' || courseStatus === 'ongoing';
+        }
+        return true;
+      });
+    }
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -86,7 +148,6 @@ const EmployeeCourses = () => {
       );
     }
 
-    // Enhanced sorting options
     switch (sortBy) {
       case "newest":
         result.sort(
@@ -113,23 +174,25 @@ const EmployeeCourses = () => {
         break;
     }
 
-    // Apply sort order
-    if (sortOrder === "desc" && sortBy !== "newest") {
+
+    if (sortOrder === 'desc' && sortBy !== 'newest') {
       result.reverse();
     }
 
     setFilteredCourses(result);
-  }, [courses, searchTerm, selectedCategory, sortBy, sortOrder]);
+  }, [courses, searchTerm, selectedCategory, selectedStatus, sortBy, sortOrder]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
   const resetFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("all");
-    setSortBy("newest");
-    setSortOrder("asc");
+
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedStatus('all');
+    setSortBy('newest');
+    setSortOrder('asc');
     setFiltersVisible(false);
   };
 
@@ -144,6 +207,10 @@ const EmployeeCourses = () => {
 
   const handleCourseClick = (courseId) => {
     navigate(`/dashboard/employee/courses/${courseId}`);
+  };
+
+  const getCourseStatusForDisplay = (course) => {
+    return getCourseStatus(course);
   };
 
   if (!isLoading && !user) {
@@ -229,7 +296,6 @@ const EmployeeCourses = () => {
             </div>
           </div>
 
-          {/* Enhanced Search and Filter Section */}
           <div
             className="bg-gray-50 p-4 rounded-lg mb-8 animate-slideUp"
             style={{
@@ -265,9 +331,9 @@ const EmployeeCourses = () => {
                   />
                 </button>
 
-                {(searchTerm ||
-                  selectedCategory !== "all" ||
-                  sortBy !== "newest") && (
+
+                {(searchTerm || selectedCategory !== 'all' || selectedStatus !== 'all' || sortBy !== 'newest') && (
+
                   <button
                     onClick={resetFilters}
                     className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-300"
@@ -279,13 +345,12 @@ const EmployeeCourses = () => {
               </div>
             </div>
 
-            {/* Advanced Filters */}
             <div
               className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
                 filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category
@@ -325,133 +390,166 @@ const EmployeeCourses = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sort By
-                  </label>
-                  <select
-                    className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="popular">Most Popular</option>
-                    <option value="title">Alphabetical</option>
-                    <option value="startDate">Start Date</option>
-                    <option value="duration">Duration</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg
-                      className="h-4 w-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <div className="relative">
+                    <select
+                      className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
+                      value={selectedStatus}
+                      onChange={e => setSelectedStatus(e.target.value)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <option value="all">All Status</option>
+                      <option value="completed">Completed</option>
+                      <option value="in_progress">In Progress</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Order
-                  </label>
-                  <select
-                    className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                  >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg
-                      className="h-4 w-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                  <div className="relative">
+                    <select
+                      className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <option value="newest">Newest First</option>
+                      <option value="popular">Most Popular</option>
+                      <option value="title">Alphabetical</option>
+                      <option value="startDate">Start Date</option>
+                      <option value="duration">Duration</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                  <div className="relative">
+                    <select
+                      className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
+                      value={sortOrder}
+                      onChange={e => setSortOrder(e.target.value)}
+                    >
+                      <option value="asc">Ascending</option>
+                      <option value="desc">Descending</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Stats Cards */}
           <div
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
             style={{
               animation: "slideUp 0.5s ease-out 0.3s both",
             }}
           >
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105">
+            <button
+              onClick={() => handleStatusFilter('completed')}
+              className={`bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selectedStatus === 'completed' ? 'ring-2 ring-blue-500 shadow-lg scale-105' : ''
+                }`}
+            >
               <div className="bg-blue-200 rounded-full p-3 mr-4">
                 <Award size={24} className="text-blue-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">
-                  0 Completed
-                </h3>
-                <p className="text-sm text-blue-700">Courses finished</p>
-              </div>
-            </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105">
+                <h3 className="text-lg font-semibold text-blue-900">{stats.completed} Completed</h3>
+                <p className="text-sm text-blue-700">
+                  {selectedStatus === 'completed' ? 'Showing completed courses' : 'Click to filter completed'}
+                </p>
+
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleStatusFilter('in_progress')}
+              className={`bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${selectedStatus === 'in_progress' ? 'ring-2 ring-purple-500 shadow-lg scale-105' : ''
+                }`}
+            >
               <div className="bg-purple-200 rounded-full p-3 mr-4">
                 <Clock size={24} className="text-purple-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-purple-900">
-                  0 In Progress
-                </h3>
-                <p className="text-sm text-purple-700">Currently learning</p>
+
+                <h3 className="text-lg font-semibold text-purple-900">{stats.inProgress} In Progress</h3>
+                <p className="text-sm text-purple-700">
+                  {selectedStatus === 'in_progress' ? 'Showing in progress courses' : 'Click to filter in progress'}
+                </p>
+
               </div>
-            </div>
+            </button>
 
             <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105">
               <div className="bg-green-200 rounded-full p-3 mr-4">
                 <CheckCircle size={24} className="text-green-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-900">
-                  0 Certificates
-                </h3>
+
+                <h3 className="text-lg font-semibold text-green-900">{stats.certificates} Certificates</h3>
+
                 <p className="text-sm text-green-700">Earned so far</p>
               </div>
             </div>
           </div>
 
-          {/* Results Summary */}
+          {selectedStatus !== 'all' && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm text-gray-600">Active filter:</span>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedStatus === 'completed'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-purple-100 text-purple-800'
+                }`}>
+                {selectedStatus === 'completed' ? (
+                  <>
+                    <Award size={14} className="mr-1" />
+                    Completed Courses
+                  </>
+                ) : (
+                  <>
+                    <Clock size={14} className="mr-1" />
+                    In Progress Courses
+                  </>
+                )}
+                <button
+                  onClick={() => setSelectedStatus('all')}
+                  className="ml-2 text-gray-500 hover:text-gray-700"
+                >
+                  <X size={14} />
+                </button>
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between items-center mb-4">
             <div className="text-gray-600">
-              {isLoading ? (
-                "Loading courses..."
-              ) : filteredCourses.length === 0 ? (
-                "No courses found"
-              ) : (
-                <div className="flex items-center gap-4">
-                  <span>
-                    {filteredCourses.length}{" "}
-                    {filteredCourses.length === 1 ? "course" : "courses"} found
-                  </span>
-                  {(searchTerm || selectedCategory !== "all") && (
-                    <span className="text-sm text-gray-500">
-                      • Filtered results
-                    </span>
-                  )}
-                </div>
-              )}
+              {isLoading ? 'Loading courses...' :
+                filteredCourses.length === 0 ? 'No courses found' :
+                  <div className="flex items-center gap-4">
+                    <span>{filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found</span>
+                    {(searchTerm || selectedCategory !== 'all' || selectedStatus !== 'all') && (
+                      <span className="text-sm text-gray-500">• Filtered results</span>
+                    )}
+                  </div>
+              }
+
             </div>
 
             {!isLoading && filteredCourses.length > 0 && (
@@ -477,7 +575,6 @@ const EmployeeCourses = () => {
             )}
           </div>
 
-          {/* Courses Display */}
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
@@ -518,29 +615,39 @@ const EmployeeCourses = () => {
               </button>
             </div>
           ) : (
-            <div
-              className={
-                viewLayout === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn"
-                  : "space-y-4 animate-fadeIn"
-              }
-            >
-              {filteredCourses.map((course, index) => (
-                <div
-                  key={course.programId || course.id}
-                  className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer opacity-0 animate-fade-in-up"
-                  style={{
-                    animation: `fadeInUp 0.5s ease-out ${
-                      0.1 + index * 0.05
-                    }s both`,
-                  }}
-                  onClick={() =>
-                    handleCourseClick(course.programId || course.id)
-                  }
-                >
-                  <CourseCard course={course} layout={viewLayout} />
-                </div>
-              ))}
+            <div className={viewLayout === 'grid' ?
+              "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn" :
+              "space-y-4 animate-fadeIn"
+            }>
+              {filteredCourses.map((course, index) => {
+                const courseStatus = getCourseStatusForDisplay(course);
+                return (
+                  <div
+                    key={course.programId || course.id}
+                    className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer opacity-0 animate-fade-in-up relative"
+                    style={{
+                      animation: `fadeInUp 0.5s ease-out ${0.1 + index * 0.05}s both`
+                    }}
+                    onClick={() => handleCourseClick(course.programId || course.id)}
+                  >
+                    <div className="absolute top-2 right-2 z-10">
+                      {courseStatus === 'completed' && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle size={12} className="mr-1" />
+                          Completed
+                        </span>
+                      )}
+                      {(courseStatus === 'in_progress' || courseStatus === 'ongoing') && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <Clock size={12} className="mr-1" />
+                          In Progress
+                        </span>
+                      )}
+                    </div>
+                    <CourseCard course={course} layout={viewLayout} />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

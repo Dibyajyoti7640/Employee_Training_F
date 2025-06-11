@@ -85,11 +85,11 @@ const EmployeeRegister = () => {
     setIsLoading(true);
 
     try {
-      const response = await api.post("/registrations", {
+
+      const response = await api.post('/registrations', {
         userId: user.userId,
-        programId: selectedOption,
+        programId: selectedOption
       });
-      console.log(user);
       setPopupMessage({
         type: "success",
         message: "Successfully registered for the course!",
@@ -100,7 +100,13 @@ const EmployeeRegister = () => {
         subject: "Registration Succesful",
         body: `You have been successfully registered for the course on ${selectedCourse.title}.`,
       });
-      console.log(res);
+
+
+      const res = await api.post('/Email', {
+        "To": `${user.email}`,
+        "subject": "Registration Succesful",
+        "body": `You have been successfully registered for the course on ${selectedCourse.title}.`
+      })
       setRegisteredCourses([...registeredCourses, selectedOption]);
       setShowPopup(true);
       setSelectedOption("");
@@ -191,7 +197,8 @@ const EmployeeRegister = () => {
                     disabled={isLoading}
                   >
                     <option value="">-- Select a training program --</option>
-                    {courses.map((course) => (
+
+                    {courses.map(course => (
                       <option
                         key={course.programId}
                         value={course.programId}
@@ -319,14 +326,13 @@ const EmployeeRegister = () => {
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {courses.slice(0, 4).map((course) => (
+                      {courses.slice(0, 4).map(course => (
                         <div
                           key={course.programId}
-                          className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${
-                            registeredCourses.includes(course.programId)
-                              ? "bg-gray-100 opacity-75 cursor-not-allowed"
-                              : "hover:border-indigo-200 hover:bg-indigo-50"
-                          }`}
+                          className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${registeredCourses.includes(course.programId)
+                              ? 'bg-gray-100 opacity-75 cursor-not-allowed'
+                              : 'hover:border-indigo-200 hover:bg-indigo-50'
+                            }`}
                           onClick={() => {
                             if (!registeredCourses.includes(course.programId)) {
                               setSelectedOption(course.programId);
@@ -339,11 +345,10 @@ const EmployeeRegister = () => {
                         >
                           <h4 className="font-medium text-gray-800">
                             {course.title}
-                            {registeredCourses.includes(course.programId) && (
-                              <span className="text-sm text-green-600 ml-2">
-                                (Registered)
-                              </span>
-                            )}
+
+                            {registeredCourses.includes(course.programId) &&
+                              <span className="text-sm text-green-600 ml-2">(Registered)</span>
+                            }
                           </h4>
                           <p className="text-sm text-gray-600 mt-1 truncate">
                             {course.description ||
@@ -376,59 +381,36 @@ const EmployeeRegister = () => {
             style={{ animation: "scaleIn 0.3s ease-out" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className={`p-1 ${
-                popupMessage.type === "success"
-                  ? "bg-green-500"
-                  : popupMessage.type === "info"
-                  ? "bg-blue-500"
-                  : "bg-red-500"
-              }`}
-            ></div>
+            <div className={`p-1 ${popupMessage.type === 'success' ? 'bg-green-500' :
+                popupMessage.type === 'info' ? 'bg-blue-500' : 'bg-red-500'
+              }`}></div>
             <div className="p-6">
               <div className="flex items-start">
-                <div
-                  className={`flex-shrink-0 p-2 rounded-full ${
-                    popupMessage.type === "success"
-                      ? "bg-green-100 text-green-600"
-                      : popupMessage.type === "info"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {popupMessage.type === "success" ? (
-                    <Check size={20} />
-                  ) : popupMessage.type === "info" ? (
-                    <Info size={20} />
-                  ) : (
-                    <Info size={20} />
-                  )}
+                <div className={`flex-shrink-0 p-2 rounded-full ${popupMessage.type === 'success' ? 'bg-green-100 text-green-600' :
+                    popupMessage.type === 'info' ? 'bg-blue-100 text-blue-600' :
+                      'bg-red-100 text-red-600'
+                  }`}>
+                  {popupMessage.type === 'success' ? <Check size={20} /> :
+                    popupMessage.type === 'info' ? <Info size={20} /> :
+                      <Info size={20} />}
                 </div>
                 <div className="ml-4 flex-1">
                   <h3 className="text-lg font-medium text-gray-900">
-                    {popupMessage.type === "success"
-                      ? "Registration Successful"
-                      : popupMessage.type === "info"
-                      ? "Already Registered"
-                      : "Registration Failed"}
+                    {popupMessage.type === 'success' ? 'Registration Successful' :
+                      popupMessage.type === 'info' ? 'Already Registered' :
+                        'Registration Failed'}
                   </h3>
                   <p className="mt-2 text-gray-600">{popupMessage.message}</p>
                   <div className="mt-4">
                     <button
                       type="button"
-                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${
-                        popupMessage.type === "success"
-                          ? "bg-green-600 hover:bg-green-700"
-                          : popupMessage.type === "info"
-                          ? "bg-blue-600 hover:bg-blue-700"
-                          : "bg-red-600 hover:bg-red-700"
-                      } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        popupMessage.type === "success"
-                          ? "focus:ring-green-500"
-                          : popupMessage.type === "info"
-                          ? "focus:ring-blue-500"
-                          : "focus:ring-red-500"
-                      }`}
+                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${popupMessage.type === 'success' ? 'bg-green-600 hover:bg-green-700' :
+                          popupMessage.type === 'info' ? 'bg-blue-600 hover:bg-blue-700' :
+                            'bg-red-600 hover:bg-red-700'
+                        } focus:outline-none focus:ring-2 focus:ring-offset-2 ${popupMessage.type === 'success' ? 'focus:ring-green-500' :
+                          popupMessage.type === 'info' ? 'focus:ring-blue-500' :
+                            'focus:ring-red-500'
+                        }`}
                       onClick={closePopup}
                     >
                       Continue

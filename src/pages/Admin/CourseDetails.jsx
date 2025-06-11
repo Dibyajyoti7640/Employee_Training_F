@@ -31,19 +31,39 @@ const AdminCourseDetails = () => {
   const [deleting, setDeleting] = useState(false);
   const [materialModalOpen, setMaterialModalOpen] = useState(false); // Add state for modal
 
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/TrainingPrograms/${courseId}`);
-        setCourse(response.data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching course:", error);
-        setError("Failed to load course details. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+
+    useEffect(() => {
+        const fetchCourse = async () => {
+            try {
+                setLoading(true);
+                const response = await api.get(`/TrainingPrograms/${courseId}`);
+                setCourse(response.data);
+                setError(null);
+            } catch (error) {
+                console.error("Error fetching course:", error);
+                setError("Failed to load course details. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (courseId) {
+            fetchCourse();
+        }
+    }, [courseId]);
+
+    const handleDelete = async () => {
+        try {
+            setDeleting(true);
+            await api.delete(`/TrainingPrograms/${courseId}`);
+            navigate("/dashboard/admin/courses", {
+                state: { message: "Course deleted successfully" },
+            });
+        } catch (error) {
+            console.error("Error deleting course:", error);
+            alert("Failed to delete course. Please try again.");
+            setDeleting(false);
+        }
     };
 
     if (courseId) {
@@ -177,16 +197,26 @@ const AdminCourseDetails = () => {
             <span>Back to Courses</span>
           </button>
 
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-slate-800">
-                  {course.title}
-                </h1>
-                {getStatusBadge()}
-              </div>
-              <p className="text-slate-600 text-lg">Training Program Details</p>
-            </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <BookOpen size={24} className="text-emerald-600" />
+                                Course Overview
+                            </h2>
+                            <div className="prose max-w-none">
+                                {/* <p className="text-slate-700 leading-relaxed text-lg">
+                                    {course.description ||
+                                        "No description provided for this course."}
+                                </p> */}
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: course.description.replace(/\n/g, '<br/>') }}
+                                />
+
+                            </div>
+                        </div>
 
             <div className="flex items-center gap-3">
               <button
