@@ -304,6 +304,7 @@ const EmployeeCourseDetails = () => {
         userRole="Employee"
       />
     </div>
+    // </div>
   );
 };
 
