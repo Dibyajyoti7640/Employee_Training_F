@@ -1,43 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import CourseCard from '../../components/CourseCard';
-import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { PlusCircle, X, Search, Filter, Calendar, Clock, Users, Briefcase, ChevronDown, ArrowLeft, Trash2, Edit } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import CourseCard from "../../components/CourseCard";
+import api from "../../services/api";
+// import { useAuth } from '../../context/AuthContext';
+import { setUser } from "../../Slices/AuthSlice";
+import { Navigate, useNavigate } from "react-router-dom";
+import {
+  PlusCircle,
+  X,
+  Search,
+  Filter,
+  Calendar,
+  Clock,
+  Users,
+  Briefcase,
+  ChevronDown,
+  ArrowLeft,
+  Trash2,
+  Edit,
+} from "lucide-react";
+import { useSelector } from "react-redux";
 
 const AdminCourses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [sortBy, setSortBy] = useState('startDate');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const { user } = useAuth();
+  const [sortBy, setSortBy] = useState("startDate");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const [newCourse, setNewCourse] = useState({
-    title: '',
-    description: '',
-    trainer: '',
-    startDate: '',
-    endDate: '',
-    mode: 'Online',
-    durationHours: '',
-    maxParticipants: '',
-    category: '',
-    createdBy: ''
+    title: "",
+    description: "",
+    trainer: "",
+    startDate: "",
+    endDate: "",
+    mode: "Online",
+    durationHours: "",
+    maxParticipants: "",
+    category: "",
+    createdBy: "",
   });
 
   useEffect(() => {
     if (user && user.userId) {
-      setNewCourse(prev => ({
+      setNewCourse((prev) => ({
         ...prev,
-        createdBy: user.userId
+        createdBy: user.userId,
       }));
     }
   }, [user]);
@@ -49,17 +64,20 @@ const AdminCourses = () => {
     }
 
     setLoading(true);
-    api.get('/TrainingPrograms')
-      .then(response => {
+    api
+      .get("/TrainingPrograms")
+      .then((response) => {
         setCourses(response.data);
         setFilteredCourses(response.data);
 
-        const uniqueCategories = [...new Set(response.data.map(course => course.category))].filter(Boolean);
+        const uniqueCategories = [
+          ...new Set(response.data.map((course) => course.category)),
+        ].filter(Boolean);
         setCategories(uniqueCategories);
 
         setLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching courses:", error);
         setLoading(false);
       });
@@ -69,28 +87,29 @@ const AdminCourses = () => {
     let result = [...courses];
 
     if (searchTerm) {
-      result = result.filter(course =>
-        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.trainer.toLowerCase().includes(searchTerm.toLowerCase())
+      result = result.filter(
+        (course) =>
+          course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          course.trainer.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (filterCategory) {
-      result = result.filter(course => course.category === filterCategory);
+      result = result.filter((course) => course.category === filterCategory);
     }
 
     result.sort((a, b) => {
       let valueA = a[sortBy];
       let valueB = b[sortBy];
 
-      if (sortBy === 'startDate' || sortBy === 'endDate') {
+      if (sortBy === "startDate" || sortBy === "endDate") {
         valueA = new Date(valueA);
         valueB = new Date(valueB);
       }
 
-      if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
-      if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+      if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -112,36 +131,37 @@ const AdminCourses = () => {
 
     const courseToAdd = {
       ...newCourse,
-      createdBy: user.userId
+      createdBy: user.userId,
     };
 
     setSubmitting(true);
 
-    api.post('/TrainingPrograms', courseToAdd)
-      .then(response => {
-        setCourses(prevCourses => [...prevCourses, response.data]);
+    api
+      .post("/TrainingPrograms", courseToAdd)
+      .then((response) => {
+        setCourses((prevCourses) => [...prevCourses, response.data]);
 
         if (newCourse.category && !categories.includes(newCourse.category)) {
-          setCategories(prev => [...prev, newCourse.category]);
+          setCategories((prev) => [...prev, newCourse.category]);
         }
 
         setNewCourse({
-          title: '',
-          description: '',
-          trainer: '',
-          startDate: '',
-          endDate: '',
-          mode: 'Online',
-          durationHours: '',
-          maxParticipants: '',
-          category: '',
-          createdBy: user.userId
+          title: "",
+          description: "",
+          trainer: "",
+          startDate: "",
+          endDate: "",
+          mode: "Online",
+          durationHours: "",
+          maxParticipants: "",
+          category: "",
+          createdBy: user.userId,
         });
 
         setShowForm(false);
         setSubmitting(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error adding course:", error);
         alert("Failed to add course. Please try again.");
         setSubmitting(false);
@@ -149,18 +169,18 @@ const AdminCourses = () => {
   };
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setFilterCategory('');
-    setSortBy('startDate');
-    setSortOrder('asc');
+    setSearchTerm("");
+    setFilterCategory("");
+    setSortBy("startDate");
+    setSortOrder("asc");
   };
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(field);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   };
 
@@ -188,12 +208,18 @@ const AdminCourses = () => {
           >
             {showForm ? (
               <>
-                <X size={18} className="transition-transform duration-300 group-hover:rotate-90" />
+                <X
+                  size={18}
+                  className="transition-transform duration-300 group-hover:rotate-90"
+                />
                 <span>Cancel</span>
               </>
             ) : (
               <>
-                <PlusCircle size={18} className="transition-transform duration-300 group-hover:scale-110" />
+                <PlusCircle
+                  size={18}
+                  className="transition-transform duration-300 group-hover:scale-110"
+                />
                 <span>Add New Course</span>
               </>
             )}
@@ -224,11 +250,16 @@ const AdminCourses = () => {
                 <span>Filters</span>
                 <ChevronDown
                   size={16}
-                  className={`text-slate-500 transition-transform duration-300 ${filtersVisible ? 'rotate-180' : ''}`}
+                  className={`text-slate-500 transition-transform duration-300 ${
+                    filtersVisible ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
-              {(searchTerm || filterCategory || sortBy !== 'startDate' || sortOrder !== 'asc') && (
+              {(searchTerm ||
+                filterCategory ||
+                sortBy !== "startDate" ||
+                sortOrder !== "asc") && (
                 <button
                   onClick={resetFilters}
                   className="flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors duration-300"
@@ -241,12 +272,15 @@ const AdminCourses = () => {
           </div>
 
           <div
-            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${filtersVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-              }`}
+            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
+              filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Category
+                </label>
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
@@ -254,13 +288,17 @@ const AdminCourses = () => {
                 >
                   <option value="">All Categories</option>
                   {categories.map((category, index) => (
-                    <option key={index} value={category}>{category}</option>
+                    <option key={index} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Sort By</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Sort By
+                </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -275,7 +313,9 @@ const AdminCourses = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Order</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Order
+                </label>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
@@ -290,8 +330,9 @@ const AdminCourses = () => {
         </div>
 
         <div
-          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${showForm ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-            }`}
+          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${
+            showForm ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+          }`}
         >
           <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-emerald-500 transform transition-all duration-500">
             <h3 className="text-xl font-bold mb-4 text-emerald-700 flex items-center gap-2">
@@ -302,7 +343,9 @@ const AdminCourses = () => {
             <form onSubmit={handleAddCourse}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="group">
-                  <label className="block text-slate-700 text-sm font-medium mb-1">Course Title *</label>
+                  <label className="block text-slate-700 text-sm font-medium mb-1">
+                    Course Title *
+                  </label>
                   <input
                     type="text"
                     name="title"
@@ -315,7 +358,9 @@ const AdminCourses = () => {
                 </div>
 
                 <div className="group">
-                  <label className="block text-slate-700 text-sm font-medium mb-1">Trainer *</label>
+                  <label className="block text-slate-700 text-sm font-medium mb-1">
+                    Trainer *
+                  </label>
                   <input
                     type="text"
                     name="trainer"
@@ -358,7 +403,9 @@ const AdminCourses = () => {
                 </div>
 
                 <div className="group">
-                  <label className="block text-slate-700 text-sm font-medium mb-1">Mode *</label>
+                  <label className="block text-slate-700 text-sm font-medium mb-1">
+                    Mode *
+                  </label>
                   <select
                     name="mode"
                     value={newCourse.mode}
@@ -428,7 +475,9 @@ const AdminCourses = () => {
               </div>
 
               <div className="mb-4 group truncate">
-                <label className="block text-slate-700 text-sm font-medium mb-1 ">Description *</label>
+                <label className="block text-slate-700 text-sm font-medium mb-1 ">
+                  Description *
+                </label>
                 <textarea
                   name="description"
                   placeholder="Provide a detailed description of the course..."
@@ -455,9 +504,25 @@ const AdminCourses = () => {
                 >
                   {submitting ? (
                     <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Processing...
                     </>
@@ -476,7 +541,8 @@ const AdminCourses = () => {
         {!loading && filteredCourses.length > 0 && (
           <div className="flex justify-between items-center mb-4 text-sm text-slate-600">
             <div>
-              <span className="font-medium">{filteredCourses.length}</span> courses found
+              <span className="font-medium">{filteredCourses.length}</span>{" "}
+              courses found
               {(searchTerm || filterCategory) && (
                 <span> • Filtered results</span>
               )}
@@ -487,14 +553,16 @@ const AdminCourses = () => {
                 onClick={() => handleSort(sortBy)}
                 className="inline-flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-800"
               >
-                {sortBy === 'title' && 'Title'}
-                {sortBy === 'startDate' && 'Start Date'}
-                {sortBy === 'endDate' && 'End Date'}
-                {sortBy === 'durationHours' && 'Duration'}
-                {sortBy === 'maxParticipants' && 'Max Participants'}
+                {sortBy === "title" && "Title"}
+                {sortBy === "startDate" && "Start Date"}
+                {sortBy === "endDate" && "End Date"}
+                {sortBy === "durationHours" && "Duration"}
+                {sortBy === "maxParticipants" && "Max Participants"}
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
+                  className={`transition-transform duration-300 ${
+                    sortOrder === "desc" ? "rotate-180" : ""
+                  }`}
                 />
               </button>
             </div>
@@ -513,7 +581,10 @@ const AdminCourses = () => {
                   <div
                     key={course.programId}
                     className="opacity-0 animate-fade-in-up cursor-pointer transform transition-all duration-300 hover:scale-105"
-                    style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+                    style={{
+                      animationDelay: `${index * 0.1}s`,
+                      animationFillMode: "forwards",
+                    }}
                     onClick={() => handleCourseClick(course.programId)}
                   >
                     <CourseCard course={course} />
@@ -525,11 +596,13 @@ const AdminCourses = () => {
                 <div className="inline-flex justify-center items-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
                   <Search size={24} className="text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">No courses found</h3>
+                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                  No courses found
+                </h3>
                 <p className="text-slate-500 mb-4 max-w-md mx-auto">
-                  {searchTerm || filterCategory ?
-                    'Try adjusting your search or filter criteria to find what you\'re looking for.' :
-                    'Get started by adding your first course. Click the "Add New Course" button above.'}
+                  {searchTerm || filterCategory
+                    ? "Try adjusting your search or filter criteria to find what you're looking for."
+                    : 'Get started by adding your first course. Click the "Add New Course" button above.'}
                 </p>
                 {(searchTerm || filterCategory) && (
                   <button
@@ -557,7 +630,7 @@ const AdminCourses = () => {
             transform: translate3d(0, 0, 0);
           }
         }
-        
+
         @keyframes slideInRight {
           from {
             transform: translate3d(20px, 0, 0);
@@ -568,24 +641,25 @@ const AdminCourses = () => {
             opacity: 1;
           }
         }
-        
+
         @keyframes pulse {
-          0%, 100% {
+          0%,
+          100% {
             opacity: 1;
           }
           50% {
             opacity: 0.7;
           }
         }
-        
+
         .animate-fade-in-up {
           animation: fadeInUp 0.5s ease-out;
         }
-        
+
         .animate-slide-in-right {
           animation: slideInRight 0.4s ease-out;
         }
-        
+
         .animate-pulse-slow {
           animation: pulse 2s ease-in-out infinite;
         }

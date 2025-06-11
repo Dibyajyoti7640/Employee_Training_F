@@ -1,27 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import CourseCard from '../../components/CourseCard';
-import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { Search, Filter, BookOpen, Clock, Award, CheckCircle, ChevronDown, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import CourseCard from "../../components/CourseCard";
+import api from "../../services/api";
+import { Navigate, useNavigate } from "react-router-dom";
+import {
+  Search,
+  Filter,
+  BookOpen,
+  Clock,
+  Award,
+  CheckCircle,
+  ChevronDown,
+  X,
+} from "lucide-react";
 
 const EmployeeCourses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [viewLayout, setViewLayout] = useState('grid');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [viewLayout, setViewLayout] = useState("grid");
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [categories, setCategories] = useState([]);
-
-  const { user } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
-  const predefinedCategories = ['Technical', 'Leadership', 'Soft Skills', 'Compliance'];
+  const predefinedCategories = [
+    "Technical",
+    "Leadership",
+    "Soft Skills",
+    "Compliance",
+  ];
 
   useEffect(() => {
     if (!user) {
@@ -32,15 +44,22 @@ const EmployeeCourses = () => {
     const fetchCourses = async () => {
       setIsLoading(true);
       try {
-        const response = await api.get('/TrainingPrograms');
+        const response = await api.get("/TrainingPrograms");
         setCourses(response.data);
         setFilteredCourses(response.data);
 
         // Extract unique categories from courses
-        const uniqueCategories = [...new Set(response.data.map(course => course.category))].filter(Boolean);
-        setCategories([...predefinedCategories, ...uniqueCategories.filter(cat => !predefinedCategories.includes(cat))]);
+        const uniqueCategories = [
+          ...new Set(response.data.map((course) => course.category)),
+        ].filter(Boolean);
+        setCategories([
+          ...predefinedCategories,
+          ...uniqueCategories.filter(
+            (cat) => !predefinedCategories.includes(cat)
+          ),
+        ]);
       } catch (err) {
-        setError('Failed to load courses. Please try again later.');
+        setError("Failed to load courses. Please try again later.");
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -53,34 +72,41 @@ const EmployeeCourses = () => {
   useEffect(() => {
     let result = [...courses];
 
-    if (selectedCategory !== 'all') {
-      result = result.filter(course => course.category === selectedCategory);
+    if (selectedCategory !== "all") {
+      result = result.filter((course) => course.category === selectedCategory);
     }
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(course =>
-        course.title.toLowerCase().includes(term) ||
-        course.description.toLowerCase().includes(term) ||
-        course.trainer.toLowerCase().includes(term)
+      result = result.filter(
+        (course) =>
+          course.title.toLowerCase().includes(term) ||
+          course.description.toLowerCase().includes(term) ||
+          course.trainer.toLowerCase().includes(term)
       );
     }
 
     // Enhanced sorting options
     switch (sortBy) {
-      case 'newest':
-        result.sort((a, b) => new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate));
+      case "newest":
+        result.sort(
+          (a, b) =>
+            new Date(b.createdAt || b.startDate) -
+            new Date(a.createdAt || a.startDate)
+        );
         break;
-      case 'popular':
-        result.sort((a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0));
+      case "popular":
+        result.sort(
+          (a, b) => (b.enrollmentCount || 0) - (a.enrollmentCount || 0)
+        );
         break;
-      case 'title':
+      case "title":
         result.sort((a, b) => a.title.localeCompare(b.title));
         break;
-      case 'startDate':
+      case "startDate":
         result.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         break;
-      case 'duration':
+      case "duration":
         result.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0));
         break;
       default:
@@ -88,7 +114,7 @@ const EmployeeCourses = () => {
     }
 
     // Apply sort order
-    if (sortOrder === 'desc' && sortBy !== 'newest') {
+    if (sortOrder === "desc" && sortBy !== "newest") {
       result.reverse();
     }
 
@@ -100,19 +126,19 @@ const EmployeeCourses = () => {
   };
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('all');
-    setSortBy('newest');
-    setSortOrder('asc');
+    setSearchTerm("");
+    setSelectedCategory("all");
+    setSortBy("newest");
+    setSortOrder("asc");
     setFiltersVisible(false);
   };
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(field);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   };
 
@@ -129,7 +155,7 @@ const EmployeeCourses = () => {
       <div
         className="max-w-6xl mx-auto bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 animate-fadeIn"
         style={{
-          animation: "fadeIn 0.6s ease-out"
+          animation: "fadeIn 0.6s ease-out",
         }}
       >
         <div className="p-6">
@@ -140,28 +166,63 @@ const EmployeeCourses = () => {
                 <span className="relative z-10">Learning Portal</span>
                 <span className="absolute bottom-1 left-8 w-full h-3 bg-indigo-200 opacity-50 -z-10 transform -rotate-1 group-hover:rotate-0 group-hover:h-4 transition-all duration-500"></span>
               </h2>
-              <p className="text-gray-600 mt-1">Discover courses to enhance your skills</p>
+              <p className="text-gray-600 mt-1">
+                Discover courses to enhance your skills
+              </p>
             </div>
 
             <div className="mt-4 md:mt-0 flex items-center space-x-2">
               <div className="flex bg-gray-100 p-1 rounded-md">
                 <button
-                  onClick={() => setViewLayout('grid')}
-                  className={`p-2 rounded-md transition-all duration-300 ${viewLayout === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setViewLayout("grid")}
+                  className={`p-2 rounded-md transition-all duration-300 ${
+                    viewLayout === "grid"
+                      ? "bg-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
-                    <rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
                   </svg>
                 </button>
                 <button
-                  onClick={() => setViewLayout('list')}
-                  className={`p-2 rounded-md transition-all duration-300 ${viewLayout === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setViewLayout("list")}
+                  className={`p-2 rounded-md transition-all duration-300 ${
+                    viewLayout === "list"
+                      ? "bg-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line>
-                    <line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line>
-                    <line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
                   </svg>
                 </button>
               </div>
@@ -172,7 +233,7 @@ const EmployeeCourses = () => {
           <div
             className="bg-gray-50 p-4 rounded-lg mb-8 animate-slideUp"
             style={{
-              animation: "slideUp 0.5s ease-out 0.2s both"
+              animation: "slideUp 0.5s ease-out 0.2s both",
             }}
           >
             <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
@@ -198,11 +259,15 @@ const EmployeeCourses = () => {
                   <span>Filters</span>
                   <ChevronDown
                     size={16}
-                    className={`text-gray-400 transition-transform duration-300 ${filtersVisible ? 'rotate-180' : ''}`}
+                    className={`text-gray-400 transition-transform duration-300 ${
+                      filtersVisible ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
-                {(searchTerm || selectedCategory !== 'all' || sortBy !== 'newest') && (
+                {(searchTerm ||
+                  selectedCategory !== "all" ||
+                  sortBy !== "newest") && (
                   <button
                     onClick={resetFilters}
                     className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-300"
@@ -216,11 +281,15 @@ const EmployeeCourses = () => {
 
             {/* Advanced Filters */}
             <div
-              className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${filtersVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+              className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
+                filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Filter size={18} className="text-gray-400" />
@@ -228,27 +297,41 @@ const EmployeeCourses = () => {
                     <select
                       className="block w-full pl-10 pr-8 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
                       value={selectedCategory}
-                      onChange={e => setSelectedCategory(e.target.value)}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
                     >
                       <option value="all">All Categories</option>
-                      {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
                       ))}
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="h-4 w-4 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sort By
+                  </label>
                   <select
                     className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
                     value={sortBy}
-                    onChange={e => setSortBy(e.target.value)}
+                    onChange={(e) => setSortBy(e.target.value)}
                   >
                     <option value="newest">Newest First</option>
                     <option value="popular">Most Popular</option>
@@ -257,25 +340,47 @@ const EmployeeCourses = () => {
                     <option value="duration">Duration</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="h-4 w-4 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Order
+                  </label>
                   <select
                     className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white text-sm transition-all duration-300"
                     value={sortOrder}
-                    onChange={e => setSortOrder(e.target.value)}
+                    onChange={(e) => setSortOrder(e.target.value)}
                   >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="h-4 w-4 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -287,7 +392,7 @@ const EmployeeCourses = () => {
           <div
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
             style={{
-              animation: "slideUp 0.5s ease-out 0.3s both"
+              animation: "slideUp 0.5s ease-out 0.3s both",
             }}
           >
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105">
@@ -295,7 +400,9 @@ const EmployeeCourses = () => {
                 <Award size={24} className="text-blue-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">0 Completed</h3>
+                <h3 className="text-lg font-semibold text-blue-900">
+                  0 Completed
+                </h3>
                 <p className="text-sm text-blue-700">Courses finished</p>
               </div>
             </div>
@@ -305,7 +412,9 @@ const EmployeeCourses = () => {
                 <Clock size={24} className="text-purple-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-purple-900">0 In Progress</h3>
+                <h3 className="text-lg font-semibold text-purple-900">
+                  0 In Progress
+                </h3>
                 <p className="text-sm text-purple-700">Currently learning</p>
               </div>
             </div>
@@ -315,7 +424,9 @@ const EmployeeCourses = () => {
                 <CheckCircle size={24} className="text-green-700" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-900">0 Certificates</h3>
+                <h3 className="text-lg font-semibold text-green-900">
+                  0 Certificates
+                </h3>
                 <p className="text-sm text-green-700">Earned so far</p>
               </div>
             </div>
@@ -324,15 +435,23 @@ const EmployeeCourses = () => {
           {/* Results Summary */}
           <div className="flex justify-between items-center mb-4">
             <div className="text-gray-600">
-              {isLoading ? 'Loading courses...' :
-                filteredCourses.length === 0 ? 'No courses found' :
-                  <div className="flex items-center gap-4">
-                    <span>{filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found</span>
-                    {(searchTerm || selectedCategory !== 'all') && (
-                      <span className="text-sm text-gray-500">• Filtered results</span>
-                    )}
-                  </div>
-              }
+              {isLoading ? (
+                "Loading courses..."
+              ) : filteredCourses.length === 0 ? (
+                "No courses found"
+              ) : (
+                <div className="flex items-center gap-4">
+                  <span>
+                    {filteredCourses.length}{" "}
+                    {filteredCourses.length === 1 ? "course" : "courses"} found
+                  </span>
+                  {(searchTerm || selectedCategory !== "all") && (
+                    <span className="text-sm text-gray-500">
+                      • Filtered results
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {!isLoading && filteredCourses.length > 0 && (
@@ -342,14 +461,16 @@ const EmployeeCourses = () => {
                   onClick={() => handleSort(sortBy)}
                   className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-800 transition-colors duration-300"
                 >
-                  {sortBy === 'title' && 'Title'}
-                  {sortBy === 'newest' && 'Newest'}
-                  {sortBy === 'popular' && 'Popular'}
-                  {sortBy === 'startDate' && 'Start Date'}
-                  {sortBy === 'duration' && 'Duration'}
+                  {sortBy === "title" && "Title"}
+                  {sortBy === "newest" && "Newest"}
+                  {sortBy === "popular" && "Popular"}
+                  {sortBy === "startDate" && "Start Date"}
+                  {sortBy === "duration" && "Duration"}
                   <ChevronDown
                     size={14}
-                    className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}
+                    className={`transition-transform duration-300 ${
+                      sortOrder === "desc" ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
               </div>
@@ -368,12 +489,27 @@ const EmployeeCourses = () => {
           ) : filteredCourses.length === 0 ? (
             <div className="bg-gray-50 p-8 rounded-lg text-center">
               <div className="text-gray-400 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 mx-auto"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-700 mb-1">No courses found</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+              <h3 className="text-lg font-medium text-gray-700 mb-1">
+                No courses found
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your search or filter criteria
+              </p>
               <button
                 onClick={resetFilters}
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors duration-300"
@@ -382,18 +518,25 @@ const EmployeeCourses = () => {
               </button>
             </div>
           ) : (
-            <div className={viewLayout === 'grid' ?
-              "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn" :
-              "space-y-4 animate-fadeIn"
-            }>
+            <div
+              className={
+                viewLayout === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn"
+                  : "space-y-4 animate-fadeIn"
+              }
+            >
               {filteredCourses.map((course, index) => (
                 <div
                   key={course.programId || course.id}
                   className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer opacity-0 animate-fade-in-up"
                   style={{
-                    animation: `fadeInUp 0.5s ease-out ${0.1 + index * 0.05}s both`
+                    animation: `fadeInUp 0.5s ease-out ${
+                      0.1 + index * 0.05
+                    }s both`,
                   }}
-                  onClick={() => handleCourseClick(course.programId || course.id)}
+                  onClick={() =>
+                    handleCourseClick(course.programId || course.id)
+                  }
                 >
                   <CourseCard course={course} layout={viewLayout} />
                 </div>
@@ -405,18 +548,34 @@ const EmployeeCourses = () => {
 
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
-        
+
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
+
         @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         @keyframes fadeInUp {
@@ -429,7 +588,7 @@ const EmployeeCourses = () => {
             transform: translate3d(0, 0, 0);
           }
         }
-        
+
         .animate-fade-in-up {
           animation: fadeInUp 0.5s ease-out;
         }
