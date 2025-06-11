@@ -16,7 +16,6 @@ export const ThemeProvider = ({ children }) => {
     }, [theme]);
 
     const toggleTheme = () => {
-        console.log("Inside toggle theme");
         setTheme(theme === "light" ? "dark" : "light");
     };
 

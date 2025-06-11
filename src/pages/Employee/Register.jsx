@@ -47,7 +47,7 @@ const EmployeeRegister = () => {
   const handleChange = (event) => {
     const courseId = Number(event.target.value);
     setSelectedOption(courseId);
-    
+
     if (courseId) {
       const course = courses.find(c => c.programId === courseId);
       setSelectedCourse(course);
@@ -58,7 +58,7 @@ const EmployeeRegister = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedOption) {
       setPopupMessage({
         type: 'error',
@@ -76,26 +76,24 @@ const EmployeeRegister = () => {
       setShowPopup(true);
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      const response = await api.post('/registrations', { 
-        userId: user.userId, 
-        programId: selectedOption 
+      const response = await api.post('/registrations', {
+        userId: user.userId,
+        programId: selectedOption
       });
-      console.log(user);
       setPopupMessage({
         type: 'success',
         message: 'Successfully registered for the course!'
       });
-      console.log(selectedCourse)
+
       const res = await api.post('/Email', {
         "To": `${user.email}`,
         "subject": "Registration Succesful",
-        "body": `You have been successfully registered for the course on ${selectedCourse.title}.` 
+        "body": `You have been successfully registered for the course on ${selectedCourse.title}.`
       })
-      console.log(res);
       setRegisteredCourses([...registeredCourses, selectedOption]);
       setShowPopup(true);
       setSelectedOption('');
@@ -123,33 +121,33 @@ const EmployeeRegister = () => {
 
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-blue-50 min-h-screen p-6">
-      <div 
+      <div
         className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300"
         style={{ animation: "fadeIn 0.6s ease-out" }}
       >
         <div className="p-6">
           <div className="border-b border-gray-100 pb-4 mb-6">
-            <h2 
+            <h2
               className="text-3xl font-bold text-gray-800"
               style={{ animation: "slideDown 0.5s ease-out" }}
             >
               Course Registration
             </h2>
-            <p 
+            <p
               className="text-gray-600 mt-1"
               style={{ animation: "slideDown 0.5s ease-out 0.1s both" }}
             >
               Select and register for available training programs
             </p>
           </div>
-          
+
           {isLoading && !courses.length ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
               <p className="text-gray-600">Loading available courses...</p>
             </div>
           ) : error ? (
-            <div 
+            <div
               className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md text-red-700 flex items-start"
               style={{ animation: "fadeIn 0.5s ease-out" }}
             >
@@ -157,7 +155,7 @@ const EmployeeRegister = () => {
               <div>
                 <p className="font-medium">Unable to load courses</p>
                 <p className="mt-1 text-sm">{error}</p>
-                <button 
+                <button
                   onClick={() => window.location.reload()}
                   className="mt-2 text-sm font-medium text-red-700 hover:text-red-800 underline"
                 >
@@ -167,7 +165,7 @@ const EmployeeRegister = () => {
             </div>
           ) : (
             <form onSubmit={handleRegister}>
-              <div 
+              <div
                 className="mb-6"
                 style={{ animation: "slideUp 0.5s ease-out 0.2s both" }}
               >
@@ -184,8 +182,8 @@ const EmployeeRegister = () => {
                   >
                     <option value="">-- Select a training program --</option>
                     {courses.map(course => (
-                      <option 
-                        key={course.programId} 
+                      <option
+                        key={course.programId}
                         value={course.programId}
                         disabled={registeredCourses.includes(course.programId)}
                       >
@@ -201,9 +199,9 @@ const EmployeeRegister = () => {
                   </div>
                 </div>
               </div>
-              
+
               {selectedCourse && (
-                <div 
+                <div
                   className="mb-6 bg-indigo-50 p-4 rounded-lg border border-indigo-100"
                   style={{ animation: "scaleIn 0.4s ease-out" }}
                 >
@@ -224,20 +222,20 @@ const EmployeeRegister = () => {
                   </div>
                 </div>
               )}
-              
-              <div 
+
+              <div
                 className="flex justify-end"
                 style={{ animation: "slideUp 0.5s ease-out 0.3s both" }}
               >
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="mr-3 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                   onClick={resetSelection}
                 >
                   Reset
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="group relative px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-medium rounded-md shadow-sm hover:from-indigo-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-70"
                   disabled={isLoading || !selectedOption || registeredCourses.includes(selectedOption)}
                 >
@@ -257,9 +255,9 @@ const EmployeeRegister = () => {
                   )}
                 </button>
               </div>
-              
+
               {courses.length > 0 && !isLoading && !error && (
-                <div 
+                <div
                   className="mt-8 pt-6 border-t border-gray-100"
                   style={{ animation: "fadeIn 0.5s ease-out 0.4s both" }}
                 >
@@ -269,13 +267,12 @@ const EmployeeRegister = () => {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {courses.slice(0, 4).map(course => (
-                        <div 
-                          key={course.programId} 
-                          className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${
-                            registeredCourses.includes(course.programId) 
-                              ? 'bg-gray-100 opacity-75 cursor-not-allowed' 
+                        <div
+                          key={course.programId}
+                          className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${registeredCourses.includes(course.programId)
+                              ? 'bg-gray-100 opacity-75 cursor-not-allowed'
                               : 'hover:border-indigo-200 hover:bg-indigo-50'
-                          }`}
+                            }`}
                           onClick={() => {
                             if (!registeredCourses.includes(course.programId)) {
                               setSelectedOption(course.programId);
@@ -286,7 +283,7 @@ const EmployeeRegister = () => {
                         >
                           <h4 className="font-medium text-gray-800">
                             {course.title}
-                            {registeredCourses.includes(course.programId) && 
+                            {registeredCourses.includes(course.programId) &&
                               <span className="text-sm text-green-600 ml-2">(Registered)</span>
                             }
                           </h4>
@@ -308,38 +305,36 @@ const EmployeeRegister = () => {
           )}
         </div>
       </div>
-      
+
       {showPopup && (
-        <div 
+        <div
           className="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-30 z-50"
           style={{ animation: "fadeIn 0.3s ease-out" }}
           onClick={closePopup}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden"
             style={{ animation: "scaleIn 0.3s ease-out" }}
             onClick={e => e.stopPropagation()}
           >
-            <div className={`p-1 ${
-              popupMessage.type === 'success' ? 'bg-green-500' : 
-              popupMessage.type === 'info' ? 'bg-blue-500' : 'bg-red-500'
-            }`}></div>
+            <div className={`p-1 ${popupMessage.type === 'success' ? 'bg-green-500' :
+                popupMessage.type === 'info' ? 'bg-blue-500' : 'bg-red-500'
+              }`}></div>
             <div className="p-6">
               <div className="flex items-start">
-                <div className={`flex-shrink-0 p-2 rounded-full ${
-                  popupMessage.type === 'success' ? 'bg-green-100 text-green-600' :
-                  popupMessage.type === 'info' ? 'bg-blue-100 text-blue-600' : 
-                  'bg-red-100 text-red-600'
-                }`}>
+                <div className={`flex-shrink-0 p-2 rounded-full ${popupMessage.type === 'success' ? 'bg-green-100 text-green-600' :
+                    popupMessage.type === 'info' ? 'bg-blue-100 text-blue-600' :
+                      'bg-red-100 text-red-600'
+                  }`}>
                   {popupMessage.type === 'success' ? <Check size={20} /> :
-                   popupMessage.type === 'info' ? <Info size={20} /> :
-                   <Info size={20} />}
+                    popupMessage.type === 'info' ? <Info size={20} /> :
+                      <Info size={20} />}
                 </div>
                 <div className="ml-4 flex-1">
                   <h3 className="text-lg font-medium text-gray-900">
                     {popupMessage.type === 'success' ? 'Registration Successful' :
-                     popupMessage.type === 'info' ? 'Already Registered' :
-                     'Registration Failed'}
+                      popupMessage.type === 'info' ? 'Already Registered' :
+                        'Registration Failed'}
                   </h3>
                   <p className="mt-2 text-gray-600">
                     {popupMessage.message}
@@ -347,15 +342,13 @@ const EmployeeRegister = () => {
                   <div className="mt-4">
                     <button
                       type="button"
-                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${
-                        popupMessage.type === 'success' ? 'bg-green-600 hover:bg-green-700' :
-                        popupMessage.type === 'info' ? 'bg-blue-600 hover:bg-blue-700' :
-                        'bg-red-600 hover:bg-red-700'
-                      } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        popupMessage.type === 'success' ? 'focus:ring-green-500' :
-                        popupMessage.type === 'info' ? 'focus:ring-blue-500' :
-                        'focus:ring-red-500'
-                      }`}
+                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${popupMessage.type === 'success' ? 'bg-green-600 hover:bg-green-700' :
+                          popupMessage.type === 'info' ? 'bg-blue-600 hover:bg-blue-700' :
+                            'bg-red-600 hover:bg-red-700'
+                        } focus:outline-none focus:ring-2 focus:ring-offset-2 ${popupMessage.type === 'success' ? 'focus:ring-green-500' :
+                          popupMessage.type === 'info' ? 'focus:ring-blue-500' :
+                            'focus:ring-red-500'
+                        }`}
                       onClick={closePopup}
                     >
                       Continue
@@ -367,7 +360,7 @@ const EmployeeRegister = () => {
           </div>
         </div>
       )}
-      
+
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; }

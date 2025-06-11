@@ -56,7 +56,7 @@ const AdminCourseDetails = () => {
         try {
             setDeleting(true);
             await api.delete(`/TrainingPrograms/${courseId}`);
-            navigate("/admin/courses", {
+            navigate("/dashboard/admin/courses", {
                 state: { message: "Course deleted successfully" },
             });
         } catch (error) {
@@ -216,10 +216,15 @@ const AdminCourseDetails = () => {
                                 Course Overview
                             </h2>
                             <div className="prose max-w-none">
-                                <p className="text-slate-700 leading-relaxed text-lg">
+                                {/* <p className="text-slate-700 leading-relaxed text-lg">
                                     {course.description ||
                                         "No description provided for this course."}
-                                </p>
+                                </p> */}
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: course.description.replace(/\n/g, '<br/>') }}
+                                />
+
                             </div>
                         </div>
 

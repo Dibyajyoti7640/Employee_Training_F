@@ -207,9 +207,10 @@ const ManagerCourseDetails = () => {
                                 Course Overview
                             </h2>
                             <div className="prose max-w-none">
-                                <p className="text-slate-700 leading-relaxed text-lg">
-                                    {course.description || 'No description provided for this course.'}
-                                </p>
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: course.description.replace(/\n/g, '<br/>') }}
+                                />
                             </div>
                         </div>
 
