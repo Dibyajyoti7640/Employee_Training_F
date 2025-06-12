@@ -76,15 +76,13 @@ export const initializeAuth = () => async (dispatch) => {
           dispatch(setUser(user));
         }
       } catch (tokenError) {
-        console.error("❌ Error decoding token:", tokenError);
-
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
         delete api.defaults.headers.common["Authorization"];
         dispatch(setError("Invalid session data. Please login again."));
       }
     } else {
-      console.log("ℹ️ No stored auth data found");
+      console.error("ℹ️ No stored auth data found");
     }
   } catch (error) {
     console.error("❌ Auth initialization error:", error);
@@ -95,11 +93,10 @@ export const initializeAuth = () => async (dispatch) => {
   }
 };
 
-// Thunk for login
 export const login = (userData) => async (dispatch) => {
   try {
     dispatch(setLoading(true));
-    dispatch(clearError()); // Clear any previous errors
+    dispatch(clearError());
 
     const response = await api.post("/auth/login", userData);
 
