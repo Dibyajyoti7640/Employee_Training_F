@@ -9,107 +9,35 @@ import {
   Download,
 } from "lucide-react";
 import api from "../services/api";
-
-const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle, userRole }) => {
-  const [materials, setMaterials] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(false);
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchCourseMaterials,
+  uploadCourseMaterial,
+  deleteCourseMaterial,
+} from "../Slices/CourseMaterialModalSlice";
+const CourseMaterialModal = ({
+  isOpen,
+  onClose,
+  courseId,
+  courseTitle,
+  userRole,
+}) => {
+  const { materials, uploading, loading, uploadProgress } = useSelector(
+    (state) => state.courseModal
+  );
   const [dragActive, setDragActive] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
 
   const isEmployee = userRole === "Employee";
-
+  const dispatch = useDispatch();
   React.useEffect(() => {
     if (isOpen && courseId) {
-      fetchMaterials();
+      dispatch(fetchCourseMaterials(courseId));
     }
-  }, [isOpen, courseId]);
-
-  const fetchMaterials = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/StudyMaterials");
-      const courseMaterials = response.data.filter(
-        (material) => material.courseId === parseInt(courseId)
-      );
-      setMaterials(courseMaterials);
-    } catch (error) {
-      console.error("Error fetching materials:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  }, [isOpen, courseId, dispatch]);
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0) return;
-
-    const file = files[0];
-    const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      alert("File size must be less than 10MB");
-      return;
-    }
-
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-      "application/vnd.ms-powerpoint",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      alert("Only PDF, Word, PowerPoint, and text files are allowed");
-      return;
-    }
-
-    try {
-      setUploading(true);
-      setUploadProgress(0);
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("courseID", courseId);
-
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-
-      const response = await api.post("/StudyMaterials/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      const newMaterial = {
-        id: response.data.id,
-        documentName: file.name,
-        courseId: parseInt(courseId),
-      };
-      setMaterials((prev) => [...prev, newMaterial]);
-
-      setTimeout(() => {
-        setUploadProgress(0);
-        setUploading(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("Failed to upload file. Please try again.");
-      setUploading(false);
-      setUploadProgress(0);
-    }
+    dispatch(uploadCourseMaterial(files, courseId));
   };
 
   const handleDownload = async (materialId, fileName) => {
@@ -136,16 +64,7 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle, userRole 
     if (!window.confirm("Are you sure you want to delete this material?")) {
       return;
     }
-
-    try {
-      await api.delete(`/StudyMaterials/${materialId}`);
-      setMaterials((prev) =>
-        prev.filter((material) => material.id !== materialId)
-      );
-    } catch (error) {
-      console.error("Error deleting material:", error);
-      alert("Failed to delete material");
-    }
+    dispatch(deleteCourseMaterial(materialId));
   };
 
   const handleDrag = (e) => {
@@ -219,10 +138,11 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle, userRole 
               </h3>
 
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${dragActive
-                  ? "border-emerald-500 bg-emerald-50"
-                  : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
-                  }`}
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+                  dragActive
+                    ? "border-emerald-500 bg-emerald-50"
+                    : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
+                }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -272,7 +192,8 @@ const CourseMaterialModal = ({ isOpen, onClose, courseId, courseTitle, userRole 
 
           <div>
             <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              {isEmployee ? "Available Materials" : "Existing Materials"} ({materials.length})
+              {isEmployee ? "Available Materials" : "Existing Materials"} (
+              {materials.length})
             </h3>
 
             {loading ? (
