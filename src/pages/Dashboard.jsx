@@ -16,7 +16,12 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const user = localStorage.getItem("user");
   const token = localStorage.getItem("authToken");
-  const decoded = jwtDecode(token);
+
+  let decoded = "";
+  if (token) {
+    decoded = jwtDecode(token);
+  }
+
   const handleLogout = () => {
     dispatch(logout());
     localStorage.removeItem("authToken");
@@ -86,10 +91,10 @@ const Dashboard = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !token) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user]);
 
   if (!user) {
     return null;
@@ -100,16 +105,14 @@ const Dashboard = () => {
         <ThemeToggle />
       </div> */}
       <div
-        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${
-          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={toggleMobileMenu}
       />
 
       <div
-        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-30 lg:z-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <Sidebar />
         <button
@@ -154,11 +157,10 @@ const Dashboard = () => {
                 </button>
 
                 <div
-                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${
-                    isUserDropdownVisible
-                      ? "scale-100 opacity-100"
-                      : "scale-95 opacity-0 pointer-events-none"
-                  }`}
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-10 transform transition duration-200 origin-top-right ${isUserDropdownVisible
+                    ? "scale-100 opacity-100"
+                    : "scale-95 opacity-0 pointer-events-none"
+                    }`}
                 >
                   <div className="p-3 border-b">
                     <p className="font-medium text-gray-800 truncate">
