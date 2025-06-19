@@ -47,11 +47,10 @@ const CalendarComponent = () => {
   const [showModal, setShowModal] = useState(false);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [file, setFile] = useState(null);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
   const [isEmailFileUploaded, setIsEmailFileUploaded] = useState(false);
+  const [isEmployee, setIsEmployee] = useState(false);
 
-  // Destructure eventForm from Redux state
+  
   const {
     title: eventTitle,
     time: eventTime,
@@ -64,107 +63,7 @@ const CalendarComponent = () => {
     endingDate,
   } = eventForm;
 
-  // useEffect(() => {
-  //   fetchEvents();
-  // }, []);
-  // useEffect(() => {
-  //   const fetchEventsAndCheckState = async () => {
-  //     await fetchEvents();
-
-  //     const locationState = window.history.state?.usr;
-  //     if (locationState?.prefilledEvent && locationState?.showAddEventModal) {
-  //       const { prefilledEvent } = locationState;
-
-  //       dispatch(
-  //         updateEventForm({
-  //           title: prefilledEvent.title,
-  //           description: prefilledEvent.description,
-  //           trainer: prefilledEvent.trainer,
-  //           venue: prefilledEvent.venue,
-  //           startingDate: prefilledEvent.startingDate,
-  //           endingDate: prefilledEvent.endingDate,
-  //           time: prefilledEvent.time,
-  //           endTime: prefilledEvent.endTime,
-  //         })
-  //       );
-
-  //       setShowModal(true);
-
-  //       // Clear the state to prevent reopening the modal on refresh
-  //       window.history.replaceState({ ...window.history.state, usr: {} }, "");
-  //     }
-  //   };
-
-  //   fetchEventsAndCheckState();
-  // }, [dispatch, fetchEvents]);
-  // useEffect(() => {
-  //   const locationState = window.history.state?.usr;
-
-  //   const checkForPrefilledEvent = () => {
-  //     if (locationState?.prefilledEvent && locationState?.showAddEventModal) {
-  //       const { prefilledEvent } = locationState;
-
-  //       dispatch(
-  //         updateEventForm({
-  //           title: prefilledEvent.title,
-  //           description: prefilledEvent.description,
-  //           trainer: prefilledEvent.trainer,
-  //           venue: prefilledEvent.venue,
-  //           startingDate: prefilledEvent.startingDate,
-  //           endingDate: prefilledEvent.endingDate,
-  //           time: prefilledEvent.time,
-  //           endTime: prefilledEvent.endTime,
-  //         })
-  //       );
-
-  //       setShowModal(true);
-
-  //       // Clear the state to prevent reopening the modal on refresh
-  //       window.history.replaceState({ ...window.history.state, usr: {} }, "");
-  //     }
-  //   };
-
-  //   // First fetch events, then check for prefilled data
-  //   const fetchData = async () => {
-  //     try {
-  //       dispatch(setLoading(true));
-  //       const response = await api.get("/Calendars");
-
-  //       const normalizedEvents = response.data.map((event) => ({
-  //         id: event.id,
-  //         title: event.meetingName || "Untitled Event",
-  //         date: event.startingDate || normalizeDate(event.time),
-  //         time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
-  //         endTime: event.endTime
-  //           ? extractTimeFromDateTime(event.endTime)
-  //           : "00:00",
-  //         meetingLink: event.teamsLink || "",
-  //         trainer: event.trainer || "",
-  //         organiser: event.organiser || "",
-  //         venue: event.venue || "",
-  //         endingDate:
-  //           event.endingDate || event.startingDate || normalizeDate(event.time),
-  //         rawData: event,
-  //       }));
-
-  //       dispatch(setEvents(normalizedEvents));
-  //       checkForPrefilledEvent();
-  //     } catch (err) {
-  //       dispatch(
-  //         setError(
-  //           err.response?.data?.message ||
-  //             err.message ||
-  //             "Failed to fetch events"
-  //         )
-  //       );
-  //       console.error("Error fetching events:", err);
-  //     } finally {
-  //       dispatch(setLoading(false));
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [dispatch]);
+  
   useEffect(() => {
     const fetchDataAndCheckState = async () => {
       try {
@@ -194,10 +93,10 @@ const CalendarComponent = () => {
         if (locationState?.prefilledEvent && locationState?.showAddEventModal) {
           const { prefilledEvent, selectedDate } = locationState;
 
-          // Set the selected date in Redux
+          
           dispatch(setSelectedDate(selectedDate));
 
-          // Prefill the form
+     
           dispatch(
             updateEventForm({
               title: prefilledEvent.title,
@@ -211,9 +110,7 @@ const CalendarComponent = () => {
             })
           );
 
-          setShowModal(true);
-
-          // Clear the state to prevent reopening the modal on refresh
+          setShowModal(true);        
           window.history.replaceState({ ...window.history.state, usr: {} }, "");
         }
       } catch (err) {
@@ -231,6 +128,12 @@ const CalendarComponent = () => {
     };
 
     fetchDataAndCheckState();
+    const user = localStorage.getItem("user");
+    const role = JSON.parse(user)?.role;
+    console.log("User role:", user);
+    if (role === "Employee") {
+      setIsEmployee(true);
+    }
   }, [dispatch]);
   const handleGlobalFileUpload = (uploadedFile) => {
     if (uploadedFile) {
@@ -933,13 +836,15 @@ We apologize for any inconvenience this may cause.`;
             )}
 
             <div className="flex space-x-3 pt-4">
-              <button
-                onClick={() => handleDeleteEvent(event.id)}
-                disabled={isLoading}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-              >
-                {isLoading ? "Deleting..." : "Delete Event"}
-              </button>
+              {!isEmployee && (
+                <button
+                  onClick={() => handleDeleteEvent(event.id)}
+                  disabled={isLoading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
+                >
+                  {isLoading ? "Deleting..." : "Delete Event"}
+                </button>
+              )}
               <button
                 onClick={() => setShowEventDetails(false)}
                 disabled={isLoading}
@@ -1017,7 +922,9 @@ We apologize for any inconvenience this may cause.`;
         </div>
       </div>
 
-      {showModal && (
+      {console.log(isEmployee)}
+
+      {showModal && !isEmployee && (
         <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto shadow-2xl border border-purple-100">
             <div className="flex items-center justify-between mb-6">
