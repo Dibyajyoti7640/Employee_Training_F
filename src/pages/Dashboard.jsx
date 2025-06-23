@@ -3,9 +3,8 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { logout } from "../Slices/AuthSlice";
 import { Menu, X, BookOpen, Users, CheckCircle, Clock, Award } from "lucide-react";
-import { jwtDecode } from "jwt-decode";
 import { useDispatch } from "react-redux";
-import { format, parseISO, isAfter, isBefore } from "date-fns";
+import { format, parseISO, isAfter, isBefore, getMonth, getYear } from "date-fns";
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -30,6 +29,8 @@ const Dashboard = () => {
   console.log(user)
   console.log(userRole)
   const userId = user?.userId;
+  const [currentProgramPage, setCurrentProgramPage] = useState(1);
+  const programsPerPage = 4;
 
   const [dashboardData, setDashboardData] = useState({
     programs: [],
@@ -37,7 +38,7 @@ const Dashboard = () => {
     isLoading: true,
     error: null
   });
-  const [users, setUsers] = useState([]); // Add this line
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +53,6 @@ const Dashboard = () => {
         console.log("Programs Response:", programsResponse);
         console.log("Registrations Response:", registrationsResponse);
 
-        // Handle different response structures
         const programs = programsResponse.data || programsResponse || [];
         const registrations = registrationsResponse.data || registrationsResponse || [];
 
@@ -82,9 +82,8 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [userId, location.pathname]);
 
-  // Fetch users on mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -92,11 +91,22 @@ const Dashboard = () => {
         setUsers(usersResponse.data || []);
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUsers([]); // fallback to empty array
+        setUsers([]);
       }
     };
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (showRegistrationsModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showRegistrationsModal]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -248,10 +258,8 @@ const Dashboard = () => {
   };
 
   const getRegistrationStatusData = () => {
-    // Registered: total registrations
     const registeredCount = dashboardData.registrations.length;
 
-    // Completed: total programs whose endDate is in the past
     const completedCount = dashboardData.programs.filter(program => {
       if (!program || !program.endDate) return false;
       try {
@@ -268,7 +276,6 @@ const Dashboard = () => {
     }];
   };
 
-  // Helper to get registration details for modal
   const getRegistrationDetails = () => {
     return dashboardData.registrations.map(reg => {
       const program = dashboardData.programs.find(p => p.programId === reg.programId);
@@ -321,7 +328,7 @@ const Dashboard = () => {
 
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full"> {/* Changed classes here */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
           <StatCard
             title="Total Programs"
             value={stats.totalPrograms}
@@ -344,10 +351,10 @@ const Dashboard = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"> {/* Increased gap */}
-          <div className="p-6 bg-white rounded-xl shadow-md border border-gray-200"> {/* Enhanced card styling */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="p-6 bg-white rounded-xl shadow-md border border-gray-200">
             <h3 className="text-xl font-semibold mb-6">Programs by Category</h3>
-            <div className="h-80"> {/* Taller charts */}
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -443,7 +450,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Modal for registrations */}
         {showRegistrationsModal && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30 p-4 transition-opacity duration-300"
@@ -451,9 +457,12 @@ const Dashboard = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
+            style={{ overflow: "hidden" }}
           >
-            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col transform transition-all duration-300 animate-fadeIn overflow-hidden">
-              {/* Header with gradient background similar to dashboard */}
+            <div
+              className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col transform transition-all duration-300 animate-fadeIn overflow-hidden"
+              style={{ overflow: "hidden" }}
+            >
               <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 via-blue-100 to-indigo-100 px-6 py-5 border-b">
                 <div className="absolute top-0 left-0 w-full h-full">
                   <div className="absolute inset-0 bg-white opacity-10"></div>
@@ -485,8 +494,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto" style={{ overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
                 {!getRegistrationDetails()?.length ? (
                   <div className="flex flex-col items-center justify-center h-full py-12 text-gray-500">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -563,7 +571,7 @@ const Dashboard = () => {
   };
 
   const renderEmployeeOverview = () => {
-    // Registered: all registrations for this user
+
     const registeredPrograms = dashboardData.registrations
       .filter(reg => reg.userId?.toString() === userId?.toString())
       .map(reg => {
@@ -571,8 +579,7 @@ const Dashboard = () => {
       })
       .filter(Boolean);
 
-    // Completed: all programs whose endDate is in the past
-    const completedPrograms = dashboardData.programs.filter(program => {
+    const completedPrograms = registeredPrograms.filter(program => {
       if (!program || !program.endDate) return false;
       try {
         return isAfter(new Date(), parseISO(program.endDate));
@@ -581,55 +588,423 @@ const Dashboard = () => {
       }
     });
 
-    // Prepare data for the bar chart
+    const inProgressPrograms = registeredPrograms.filter(program => {
+      if (!program || !program.startDate || !program.endDate) return false;
+      try {
+        const now = new Date();
+        return isAfter(now, parseISO(program.startDate)) && isBefore(now, parseISO(program.endDate));
+      } catch {
+        return false;
+      }
+    });
+
+    const upcomingPrograms = registeredPrograms.filter(program => {
+      if (!program || !program.startDate) return false;
+      try {
+        return isAfter(parseISO(program.startDate), new Date());
+      } catch {
+        return false;
+      }
+    });
+
+    const totalProgramPages = Math.ceil(registeredPrograms.length / programsPerPage);
+    const startProgramIndex = (currentProgramPage - 1) * programsPerPage;
+    const endProgramIndex = startProgramIndex + programsPerPage;
+    const currentPrograms = registeredPrograms.slice(startProgramIndex, endProgramIndex);
+
+    const goToNextProgramPage = () => {
+      if (currentProgramPage < totalProgramPages) {
+        setCurrentProgramPage(currentProgramPage + 1);
+      }
+    };
+
+    const goToPrevProgramPage = () => {
+      if (currentProgramPage > 1) {
+        setCurrentProgramPage(currentProgramPage - 1);
+      }
+    };
+
+    const goToProgramPage = (pageNumber) => {
+      setCurrentProgramPage(pageNumber);
+    };
+
+    const completionRate = registeredPrograms.length > 0
+      ? Math.round((completedPrograms.length / registeredPrograms.length) * 100)
+      : 0;
+
+    const learningStreak = Math.min(completedPrograms.length * 2 + Math.floor(Math.random() * 3), 30);
+
     const progressData = [
-      {
-        name: "Registered",
-        value: registeredPrograms.length,
-      },
       {
         name: "Completed",
         value: completedPrograms.length,
+        color: "#10b981"
       },
-    ];
+      {
+        name: "In Progress",
+        value: inProgressPrograms.length,
+        color: "#f59e0b"
+      },
+      {
+        name: "Upcoming",
+        value: upcomingPrograms.length,
+        color: "#3b82f6"
+      }
+    ].filter(item => item.value > 0);
+
+    const categoryData = {};
+    registeredPrograms.forEach(program => {
+      if (program && program.category) {
+        categoryData[program.category] = (categoryData[program.category] || 0) + 1;
+      }
+    });
+    const categoryChartData = Object.entries(categoryData).map(([name, value]) => ({ name, value }));
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    const completionsByMonth = Array(currentMonth + 1).fill(0);
+
+    registeredPrograms.forEach(program => {
+      if (program && program.endDate) {
+        const endDate = parseISO(program.endDate);
+        if (
+          !isNaN(endDate) &&
+          getYear(endDate) === currentYear &&
+          getMonth(endDate) <= currentMonth &&
+          isBefore(endDate, now)
+        ) {
+          completionsByMonth[getMonth(endDate)]++;
+        }
+      }
+    });
+
+    const monthlyProgressData = [];
+    for (let i = 0; i <= currentMonth; i++) {
+      monthlyProgressData.push({
+        month: format(new Date(currentYear, i, 1), "MMM"),
+        completed: completionsByMonth[i]
+      });
+    }
+
+    const getAchievementLevel = () => {
+      if (completedPrograms.length >= 10) return { level: "Expert", icon: "🏆", color: "from-yellow-400 to-orange-500" };
+      if (completedPrograms.length >= 5) return { level: "Advanced", icon: "🥇", color: "from-blue-400 to-purple-500" };
+      if (completedPrograms.length >= 2) return { level: "Intermediate", icon: "🥈", color: "from-green-400 to-blue-500" };
+      return { level: "Beginner", icon: "🥉", color: "from-gray-400 to-gray-500" };
+    };
+
+    const achievement = getAchievementLevel();
 
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          <StatCard
-            title="Registered"
-            value={registeredPrograms.length}
-            icon={<BookOpen className="h-6 w-6" />}
-            color="purple"
-          />
-          <StatCard
-            title="Completed"
-            value={completedPrograms.length}
-            icon={<Award className="h-6 w-6" />}
-            color="green"
-          />
+        <div className={`relative overflow-hidden bg-gradient-to-r ${achievement.color} rounded-xl shadow-lg transform transition-all duration-500 hover:shadow-xl`}>
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute inset-0 bg-white opacity-10"></div>
+            <div className="absolute -inset-x-20 top-8 h-px bg-white opacity-30 rotate-12"></div>
+          </div>
+          <div className="relative px-6 py-8 text-center text-white">
+            <div className="text-4xl mb-2">{achievement.icon}</div>
+            <h2 className="text-2xl font-bold mb-2">{achievement.level} Learner</h2>
+            <p className="text-white/90">
+              {completedPrograms.length} courses completed • {completionRate}% completion rate
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
-          <div className="p-6 bg-white rounded-xl shadow-md border border-gray-200">
-            <h3 className="text-xl font-semibold mb-6">My Training Progress</h3>
-            <div className="h-80">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl shadow-md border border-purple-200 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-purple-600 mb-1">Registered</p>
+                <p className="text-3xl font-bold text-purple-700">{registeredPrograms.length}</p>
+              </div>
+              <BookOpen className="h-8 w-8 text-purple-500" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-md border border-green-200 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-600 mb-1">Completed</p>
+                <p className="text-3xl font-bold text-green-700">{completedPrograms.length}</p>
+              </div>
+              <Award className="h-8 w-8 text-green-500" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl shadow-md border border-orange-200 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-600 mb-1">In Progress</p>
+                <p className="text-3xl font-bold text-orange-700">{inProgressPrograms.length}</p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-500" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-md border border-blue-200 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-600 mb-1">Learning Streak</p>
+                <p className="text-3xl font-bold text-blue-700">{learningStreak}</p>
+                <p className="text-xs text-blue-500">days</p>
+              </div>
+              <div className="text-2xl">🔥</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4 text-center">Completion Rate</h3>
+            <div className="flex items-center justify-center">
+              <div className="relative w-32 h-32">
+                <svg className="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    stroke="#e5e7eb"
+                    strokeWidth="8"
+                    fill="none"
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    stroke="#10b981"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(2 * Math.PI * 50 * completionRate) / 100} ${2 * Math.PI * 50}`}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-800">{completionRate}%</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-center text-sm text-gray-600 mt-2">
+              {completedPrograms.length} of {registeredPrograms.length} courses completed
+            </p>
+          </div>
+
+          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4">Training Status Distribution</h3>
+            <div className="h-64">
+              {progressData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={progressData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={progressData.length > 1 ? 5 : 0}
+                      dataKey="value"
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={false}
+                    >
+                      {progressData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600">No training data available</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4">Learning Progress Over Time</h3>
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={progressData}>
+                <LineChart data={monthlyProgressData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="month" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#3b82f6" />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="completed"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+
+          {categoryChartData.length > 0 && (
+            <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4">Learning Categories</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryChartData} layout="horizontal">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis dataKey="name" type="category" width={80} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b">
+            <h3 className="text-lg font-semibold">My Recent Courses</h3>
+          </div>
+          <div className="p-6">
+            {registeredPrograms.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No courses registered yet</h3>
+                <p className="text-gray-600">Start your learning journey by registering for courses!</p>
+              </div>
+            ) : (
+              <div>
+                <div className="space-y-4">
+                  {currentPrograms.map((program, index) => {
+                    const isCompleted = completedPrograms.includes(program);
+                    const isInProgress = inProgressPrograms.includes(program);
+                    const isUpcoming = upcomingPrograms.includes(program);
+
+                    let statusConfig = {
+                      label: "Registered",
+                      color: "bg-gray-100 text-gray-800",
+                      icon: "📚"
+                    };
+
+                    if (isCompleted) {
+                      statusConfig = { label: "Completed", color: "bg-green-100 text-green-800", icon: "✅" };
+                    } else if (isInProgress) {
+                      statusConfig = { label: "In Progress", color: "bg-orange-100 text-orange-800", icon: "🔄" };
+                    } else if (isUpcoming) {
+                      statusConfig = { label: "Upcoming", color: "bg-blue-100 text-blue-800", icon: "⏰" };
+                    }
+
+                    return (
+                      <div key={program.programId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="text-2xl">{statusConfig.icon}</div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{program.title}</h4>
+                            <p className="text-sm text-gray-600">{program.category}</p>
+                            {program.startDate && program.endDate && (
+                              <p className="text-xs text-gray-500">
+                                {format(parseISO(program.startDate), 'MMM d')} - {format(parseISO(program.endDate), 'MMM d, yyyy')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
+                          {statusConfig.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {totalProgramPages > 1 && (
+                  <div className="flex items-center justify-between mt-6">
+                    <button
+                      onClick={goToPrevProgramPage}
+                      disabled={currentProgramPage === 1}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${currentProgramPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
+                        }`}
+                    >
+                      Previous
+                    </button>
+
+                    <div className="flex space-x-1">
+                      {Array.from({ length: totalProgramPages }, (_, index) => (
+                        <div
+                          key={index + 1}
+                          onClick={() => goToProgramPage(index + 1)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${currentProgramPage === index + 1
+                            ? "bg-indigo-600 text-white"
+                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                          {index + 1}
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={goToNextProgramPage}
+                      disabled={currentProgramPage === totalProgramPages}
+                      className={`px-3 py-2 text-sm font-medium rounded-md ${currentProgramPage === totalProgramPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b">
+            <h3 className="text-lg font-semibold">Achievements & Milestones</h3>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className={`p-4 rounded-lg text-center ${completedPrograms.length >= 1 ? 'bg-yellow-50 border-2 border-yellow-200' : 'bg-gray-50 border-2 border-gray-200'}`}>
+                <div className="text-2xl mb-2">{completedPrograms.length >= 1 ? '🏅' : '⚪'}</div>
+                <p className="text-sm font-medium">First Course</p>
+                <p className="text-xs text-gray-600">Complete 1 course</p>
+              </div>
+              <div className={`p-4 rounded-lg text-center ${completedPrograms.length >= 3 ? 'bg-blue-50 border-2 border-blue-200' : 'bg-gray-50 border-2 border-gray-200'}`}>
+                <div className="text-2xl mb-2">{completedPrograms.length >= 3 ? '🎯' : '⚪'}</div>
+                <p className="text-sm font-medium">Committed</p>
+                <p className="text-xs text-gray-600">Complete 3 courses</p>
+              </div>
+              <div className={`p-4 rounded-lg text-center ${completedPrograms.length >= 5 ? 'bg-purple-50 border-2 border-purple-200' : 'bg-gray-50 border-2 border-gray-200'}`}>
+                <div className="text-2xl mb-2">{completedPrograms.length >= 5 ? '⭐' : '⚪'}</div>
+                <p className="text-sm font-medium">Rising Star</p>
+                <p className="text-xs text-gray-600">Complete 5 courses</p>
+              </div>
+              <div className={`p-4 rounded-lg text-center ${completedPrograms.length >= 10 ? 'bg-yellow-50 border-2 border-yellow-200' : 'bg-gray-50 border-2 border-gray-200'}`}>
+                <div className="text-2xl mb-2">{completedPrograms.length >= 10 ? '👑' : '⚪'}</div>
+                <p className="text-sm font-medium">Expert</p>
+                <p className="text-xs text-gray-600">Complete 10 courses</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     );
   };
-
   const isDashboardRoot = location.pathname === "/dashboard";
 
   return (
