@@ -248,9 +248,8 @@ const ManagerCourses = () => {
                 <span>Filters</span>
                 <ChevronDown
                   size={16}
-                  className={`text-slate-500 transition-transform duration-300 ${
-                    filtersVisible ? "rotate-180" : ""
-                  }`}
+                  className={`text-slate-500 transition-transform duration-300 ${filtersVisible ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -258,21 +257,20 @@ const ManagerCourses = () => {
                 filterCategory ||
                 sortBy !== "startDate" ||
                 sortOrder !== "asc") && (
-                <button
-                  onClick={resetFilters}
-                  className="flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors duration-300"
-                >
-                  <X size={16} />
-                  <span>Reset</span>
-                </button>
-              )}
+                  <button
+                    onClick={resetFilters}
+                    className="flex items-center gap-1 text-emerald-600 hover:text-emerald-800 transition-colors duration-300"
+                  >
+                    <X size={16} />
+                    <span>Reset</span>
+                  </button>
+                )}
             </div>
           </div>
 
           <div
-            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
-              filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-            }`}
+            className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              }`}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200">
               <div>
@@ -328,9 +326,8 @@ const ManagerCourses = () => {
         </div>
 
         <div
-          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${
-            showForm ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className={`overflow-hidden transition-all duration-500 ease-in-out mb-6 ${showForm ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-emerald-500 transform transition-all duration-500">
             <h3 className="text-xl font-bold mb-4 text-emerald-700 flex items-center gap-2">
@@ -558,9 +555,8 @@ const ManagerCourses = () => {
                 {sortBy === "maxParticipants" && "Max Participants"}
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-300 ${
-                    sortOrder === "desc" ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-300 ${sortOrder === "desc" ? "rotate-180" : ""
+                    }`}
                 />
               </button>
             </div>

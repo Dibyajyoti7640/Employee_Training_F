@@ -255,11 +255,10 @@ const EmployeeCourses = () => {
               <div className="flex bg-gray-100 p-1 rounded-md">
                 <button
                   onClick={() => setViewLayout("grid")}
-                  className={`p-2 rounded-md transition-all duration-300 ${
-                    viewLayout === "grid"
-                      ? "bg-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`p-2 rounded-md transition-all duration-300 ${viewLayout === "grid"
+                    ? "bg-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -280,11 +279,10 @@ const EmployeeCourses = () => {
                 </button>
                 <button
                   onClick={() => setViewLayout("list")}
-                  className={`p-2 rounded-md transition-all duration-300 ${
-                    viewLayout === "list"
-                      ? "bg-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`p-2 rounded-md transition-all duration-300 ${viewLayout === "list"
+                    ? "bg-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -338,9 +336,8 @@ const EmployeeCourses = () => {
                   <span>Filters</span>
                   <ChevronDown
                     size={16}
-                    className={`text-gray-400 transition-transform duration-300 ${
-                      filtersVisible ? "rotate-180" : ""
-                    }`}
+                    className={`text-gray-400 transition-transform duration-300 ${filtersVisible ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 
@@ -348,21 +345,20 @@ const EmployeeCourses = () => {
                   selectedCategory !== "all" ||
                   selectedStatus !== "all" ||
                   sortBy !== "newest") && (
-                  <button
-                    onClick={resetFilters}
-                    className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-300"
-                  >
-                    <X size={16} />
-                    <span>Reset</span>
-                  </button>
-                )}
+                    <button
+                      onClick={resetFilters}
+                      className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-300"
+                    >
+                      <X size={16} />
+                      <span>Reset</span>
+                    </button>
+                  )}
               </div>
             </div>
 
             <div
-              className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${
-                filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-              }`}
+              className={`overflow-hidden transition-all duration-500 ease-in-out mt-4 ${filtersVisible ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
                 <div>
@@ -511,11 +507,10 @@ const EmployeeCourses = () => {
           >
             <button
               onClick={() => handleStatusFilter("completed")}
-              className={`bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
-                selectedStatus === "completed"
-                  ? "ring-2 ring-blue-500 shadow-lg scale-105"
-                  : ""
-              }`}
+              className={`bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selectedStatus === "completed"
+                ? "ring-2 ring-blue-500 shadow-lg scale-105"
+                : ""
+                }`}
             >
               <div className="bg-blue-200 rounded-full p-3 mr-4">
                 <Award size={24} className="text-blue-700" />
@@ -534,11 +529,10 @@ const EmployeeCourses = () => {
 
             <button
               onClick={() => handleStatusFilter("in_progress")}
-              className={`bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${
-                selectedStatus === "in_progress"
-                  ? "ring-2 ring-purple-500 shadow-lg scale-105"
-                  : ""
-              }`}
+              className={`bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${selectedStatus === "in_progress"
+                ? "ring-2 ring-purple-500 shadow-lg scale-105"
+                : ""
+                }`}
             >
               <div className="bg-purple-200 rounded-full p-3 mr-4">
                 <Clock size={24} className="text-purple-700" />
@@ -573,11 +567,10 @@ const EmployeeCourses = () => {
             <div className="mb-4 flex items-center gap-2">
               <span className="text-sm text-gray-600">Active filter:</span>
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedStatus === "completed"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-purple-100 text-purple-800"
-                }`}
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedStatus === "completed"
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-purple-100 text-purple-800"
+                  }`}
               >
                 {selectedStatus === "completed" ? (
                   <>
@@ -615,10 +608,10 @@ const EmployeeCourses = () => {
                   {(searchTerm ||
                     selectedCategory !== "all" ||
                     selectedStatus !== "all") && (
-                    <span className="text-sm text-gray-500">
-                      • Filtered results
-                    </span>
-                  )}
+                      <span className="text-sm text-gray-500">
+                        • Filtered results
+                      </span>
+                    )}
                 </div>
               )}
             </div>
@@ -637,9 +630,8 @@ const EmployeeCourses = () => {
                   {sortBy === "duration" && "Duration"}
                   <ChevronDown
                     size={14}
-                    className={`transition-transform duration-300 ${
-                      sortOrder === "desc" ? "rotate-180" : ""
-                    }`}
+                    className={`transition-transform duration-300 ${sortOrder === "desc" ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
               </div>
@@ -700,9 +692,8 @@ const EmployeeCourses = () => {
                     key={course.programId || course.id}
                     className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer opacity-0 animate-fade-in-up relative"
                     style={{
-                      animation: `fadeInUp 0.5s ease-out ${
-                        0.1 + index * 0.05
-                      }s both`,
+                      animation: `fadeInUp 0.5s ease-out ${0.1 + index * 0.05
+                        }s both`,
                     }}
                     onClick={() =>
                       handleCourseClick(course.programId || course.id)
@@ -717,11 +708,11 @@ const EmployeeCourses = () => {
                       )}
                       {(courseStatus === "in_progress" ||
                         courseStatus === "ongoing") && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <Clock size={12} className="mr-1" />
-                          In Progress
-                        </span>
-                      )}
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <Clock size={12} className="mr-1" />
+                            In Progress
+                          </span>
+                        )}
                     </div>
                     <CourseCard course={course} layout={viewLayout} />
                   </div>

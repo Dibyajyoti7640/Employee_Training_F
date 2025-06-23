@@ -335,7 +335,6 @@ const EmployeeRegister = () => {
                     </p>
                   ) : (
                     <div>
-                      {/* Course Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {currentCourses.map((course) => (
                           <div
@@ -370,10 +369,8 @@ const EmployeeRegister = () => {
                         ))}
                       </div>
 
-                      {/* Pagination Controls */}
                       {totalPages > 1 && (
                         <div className="flex items-center justify-between mt-6">
-                          {/* Previous Button */}
                           <button
                             onClick={goToPrevPage}
                             disabled={currentPage === 1}
@@ -385,7 +382,6 @@ const EmployeeRegister = () => {
                             Previous
                           </button>
 
-                          {/* Page Numbers */}
                           <div className="flex space-x-1">
                             {Array.from({ length: totalPages }, (_, index) => (
                               <div
@@ -401,7 +397,6 @@ const EmployeeRegister = () => {
                             ))}
                           </div>
 
-                          {/* Next Button */}
                           <button
                             onClick={goToNextPage}
                             disabled={currentPage === totalPages}

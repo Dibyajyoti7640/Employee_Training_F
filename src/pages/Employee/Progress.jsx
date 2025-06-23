@@ -428,18 +428,16 @@ const EmployeeProgress = () => {
             <div className="bg-gray-100 p-1 rounded-lg flex">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-1 rounded ${
-                  viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"
-                }`}
+                className={`p-1 rounded ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"
+                  }`}
                 aria-label="Grid view"
               >
                 <Grid size={18} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-1 rounded ${
-                  viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"
-                }`}
+                className={`p-1 rounded ${viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"
+                  }`}
                 aria-label="List view"
               >
                 <List size={18} />
@@ -465,10 +463,10 @@ const EmployeeProgress = () => {
             const progressPercentage =
               course.startDate && course.endDate
                 ? calculateProgress(
-                    course.startDate,
-                    course.endDate,
-                    registration.status
-                  )
+                  course.startDate,
+                  course.endDate,
+                  registration.status
+                )
                 : statusConfig[registration.status]?.progress || 0;
 
             return (
@@ -482,15 +480,14 @@ const EmployeeProgress = () => {
                     style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
                   >
                     <div
-                      className={`w-full h-full ${
-                        registration.status === "Completed"
+                      className={`w-full h-full ${registration.status === "Completed"
                           ? "bg-emerald-100"
                           : registration.status === "In Progress"
-                          ? "bg-amber-100"
-                          : registration.status === "Dropped"
-                          ? "bg-rose-100"
-                          : "bg-indigo-100"
-                      }`}
+                            ? "bg-amber-100"
+                            : registration.status === "Dropped"
+                              ? "bg-rose-100"
+                              : "bg-indigo-100"
+                        }`}
                     ></div>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-indigo-600 transition-colors duration-300">
@@ -498,10 +495,9 @@ const EmployeeProgress = () => {
                   </h3>
                   <div className="flex items-center mt-2">
                     <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center border ${
-                        statusConfig[registration.status]?.color ||
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center border ${statusConfig[registration.status]?.color ||
                         "bg-gray-100"
-                      }`}
+                        }`}
                     >
                       {statusConfig[registration.status]?.icon}
                       {registration.status}
@@ -592,15 +588,14 @@ const EmployeeProgress = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                          registration.status === "Completed"
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === "Completed"
                             ? "bg-emerald-500"
                             : registration.status === "In Progress"
-                            ? "bg-amber-500"
-                            : registration.status === "Dropped"
-                            ? "bg-rose-500"
-                            : "bg-indigo-500"
-                        }`}
+                              ? "bg-amber-500"
+                              : registration.status === "Dropped"
+                                ? "bg-rose-500"
+                                : "bg-indigo-500"
+                          }`}
                         style={{ width: `${progressPercentage}%` }}
                       ></div>
                     </div>
@@ -610,11 +605,10 @@ const EmployeeProgress = () => {
                 <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center">
                   {daysRemaining > 0 ? (
                     <span
-                      className={`text-sm ${
-                        daysRemaining < 7
+                      className={`text-sm ${daysRemaining < 7
                           ? "text-amber-600 font-medium"
                           : "text-gray-600"
-                      }`}
+                        }`}
                     >
                       <span className="font-medium">{daysRemaining}</span> days
                       remaining
@@ -683,10 +677,10 @@ const EmployeeProgress = () => {
                   const progressPercentage =
                     course.startDate && course.endDate
                       ? calculateProgress(
-                          course.startDate,
-                          course.endDate,
-                          registration.status
-                        )
+                        course.startDate,
+                        course.endDate,
+                        registration.status
+                      )
                       : statusConfig[registration.status]?.progress || 0;
 
                   return (
@@ -706,10 +700,9 @@ const EmployeeProgress = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center w-fit border ${
-                            statusConfig[registration.status]?.color ||
+                          className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center w-fit border ${statusConfig[registration.status]?.color ||
                             "bg-gray-100"
-                          }`}
+                            }`}
                         >
                           {statusConfig[registration.status]?.icon}
                           {registration.status}
@@ -748,15 +741,14 @@ const EmployeeProgress = () => {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                registration.status === "Completed"
+                              className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === "Completed"
                                   ? "bg-emerald-500"
                                   : registration.status === "In Progress"
-                                  ? "bg-amber-500"
-                                  : registration.status === "Dropped"
-                                  ? "bg-rose-500"
-                                  : "bg-indigo-500"
-                              }`}
+                                    ? "bg-amber-500"
+                                    : registration.status === "Dropped"
+                                      ? "bg-rose-500"
+                                      : "bg-indigo-500"
+                                }`}
                               style={{ width: `${progressPercentage}%` }}
                             ></div>
                           </div>
