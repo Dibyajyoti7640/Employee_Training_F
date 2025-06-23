@@ -118,7 +118,6 @@ export const uploadCourseMaterial =
         courseId: parseInt(courseId),
       };
 
-      // Get current materials from state and add new material
       const currentMaterials = getState().courseModal.materials;
       dispatch(setMaterials([...currentMaterials, newMaterial]));
 
