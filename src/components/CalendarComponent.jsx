@@ -855,7 +855,6 @@ We apologize for any inconvenience this may cause.`;
     );
   };
 
-  // Helper to reset form fields
   const resetForm = () => {
     dispatch(resetEventForm());
     setFile(null);
@@ -1003,11 +1002,10 @@ We apologize for any inconvenience this may cause.`;
                 </label>
                 <input
                   type="date"
-                  value={selectedDate} // This now comes from Redux state
+                  value={selectedDate}
                   onChange={(e) => {
                     dispatch(setSelectedDate(e.target.value));
                     dispatch(updateEventForm({ startingDate: e.target.value }));
-                    // Ensure end date isn't before start date
                     if (endingDate && e.target.value > endingDate) {
                       dispatch(updateEventForm({ endingDate: e.target.value }));
                     }
@@ -1026,7 +1024,7 @@ We apologize for any inconvenience this may cause.`;
                   onChange={(e) =>
                     dispatch(updateEventForm({ endingDate: e.target.value }))
                   }
-                  min={selectedDate} // Ensure end date can't be before start date
+                  min={selectedDate}
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>

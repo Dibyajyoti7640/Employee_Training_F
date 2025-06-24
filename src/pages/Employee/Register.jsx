@@ -14,6 +14,13 @@ const EmployeeRegister = () => {
   const [popupMessage, setPopupMessage] = useState({ type: "", message: "" });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const { user } = useSelector((state) => state.auth);
+  const [currentPage, setCurrentPage] = useState(1);
+  const coursesPerPage = 4;
+
+  const totalPages = Math.ceil(courses.length / coursesPerPage);
+  const startIndex = (currentPage - 1) * coursesPerPage;
+  const endIndex = startIndex + coursesPerPage;
+  const currentCourses = courses.slice(startIndex, endIndex);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,18 +100,6 @@ const EmployeeRegister = () => {
         type: "success",
         message: "Successfully registered for the course!",
       });
-      // console.log(selectedCourse);
-      // const res = await api.post("/Email", {
-      //   To: `${user.email}`,
-      //   subject: "Registration Succesful",
-      //   body: `You have been successfully registered for the course on ${selectedCourse.title}.`,
-      // });
-
-      // const res = await api.post('/Email', {
-      //   "To": `${user.email}`,
-      //   "subject": "Registration Succesful",
-      //   "body": `You have been successfully registered for the course on ${selectedCourse.title}.`
-      // })
       setRegisteredCourses([...registeredCourses, selectedOption]);
       setShowPopup(true);
       setSelectedOption("");
@@ -119,6 +114,22 @@ const EmployeeRegister = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   const closePopup = () => {
@@ -323,46 +334,82 @@ const EmployeeRegister = () => {
                       started!
                     </p>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {courses.slice(0, 4).map((course) => (
-                        <div
-                          key={course.programId}
-                          className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${
-                            registeredCourses.includes(course.programId)
+                    <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {currentCourses.map((course) => (
+                          <div
+                            key={course.programId}
+                            className={`p-3 border border-gray-100 rounded-md transition-colors cursor-pointer ${registeredCourses.includes(course.programId)
                               ? "bg-gray-100 opacity-75 cursor-not-allowed"
                               : "hover:border-indigo-200 hover:bg-indigo-50"
-                          }`}
-                          onClick={() => {
-                            if (!registeredCourses.includes(course.programId)) {
-                              setSelectedOption(course.programId);
-                              setSelectedCourse(course);
-                              document
-                                .getElementById("course-select")
-                                .scrollIntoView({ behavior: "smooth" });
-                            }
-                          }}
-                        >
-                          <h4 className="font-medium text-gray-800">
-                            {course.title}
+                              }`}
+                            onClick={() => {
+                              if (!registeredCourses.includes(course.programId)) {
+                                setSelectedOption(course.programId);
+                                setSelectedCourse(course);
+                                document
+                                  .getElementById("course-select")
+                                  .scrollIntoView({ behavior: "smooth" });
+                              }
+                            }}
+                          >
+                            <h4 className="font-medium text-gray-800">
+                              {course.title}
+                              {registeredCourses.includes(course.programId) && (
+                                <span className="text-sm text-green-600 ml-2">
+                                  (Registered)
+                                </span>
+                              )}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1 truncate">
+                              {course.description ||
+                                "Enhance your skills with this comprehensive training program."}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
 
-                            {registeredCourses.includes(course.programId) && (
-                              <span className="text-sm text-green-600 ml-2">
-                                (Registered)
-                              </span>
-                            )}
-                          </h4>
-                          <p className="text-sm text-gray-600 mt-1 truncate">
-                            {course.description ||
-                              "Enhance your skills with this comprehensive training program."}
-                          </p>
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-6">
+                          <button
+                            onClick={goToPrevPage}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === 1
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                              }`}
+                          >
+                            Previous
+                          </button>
+
+                          <div className="flex space-x-1">
+                            {Array.from({ length: totalPages }, (_, index) => (
+                              <div
+                                key={index + 1}
+                                onClick={() => goToPage(index + 1)}
+                                className={`px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${currentPage === index + 1
+                                  ? "bg-indigo-600 text-white"
+                                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                  }`}
+                              >
+                                {index + 1}
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={goToNextPage}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === totalPages
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                              }`}
+                          >
+                            Next
+                          </button>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                  {courses.length > 4 && (
-                    <p className="text-sm text-gray-500 mt-3 text-center">
-                      + {courses.length - 4} more programs available
-                    </p>
                   )}
                 </div>
               )}
@@ -383,24 +430,22 @@ const EmployeeRegister = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`p-1 ${
-                popupMessage.type === "success"
-                  ? "bg-green-500"
-                  : popupMessage.type === "info"
+              className={`p-1 ${popupMessage.type === "success"
+                ? "bg-green-500"
+                : popupMessage.type === "info"
                   ? "bg-blue-500"
                   : "bg-red-500"
-              }`}
+                }`}
             ></div>
             <div className="p-6">
               <div className="flex items-start">
                 <div
-                  className={`flex-shrink-0 p-2 rounded-full ${
-                    popupMessage.type === "success"
-                      ? "bg-green-100 text-green-600"
-                      : popupMessage.type === "info"
+                  className={`flex-shrink-0 p-2 rounded-full ${popupMessage.type === "success"
+                    ? "bg-green-100 text-green-600"
+                    : popupMessage.type === "info"
                       ? "bg-blue-100 text-blue-600"
                       : "bg-red-100 text-red-600"
-                  }`}
+                    }`}
                 >
                   {popupMessage.type === "success" ? (
                     <Check size={20} />
@@ -415,26 +460,24 @@ const EmployeeRegister = () => {
                     {popupMessage.type === "success"
                       ? "Registration Successful"
                       : popupMessage.type === "info"
-                      ? "Already Registered"
-                      : "Registration Failed"}
+                        ? "Already Registered"
+                        : "Registration Failed"}
                   </h3>
                   <p className="mt-2 text-gray-600">{popupMessage.message}</p>
                   <div className="mt-4">
                     <button
                       type="button"
-                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${
-                        popupMessage.type === "success"
-                          ? "bg-green-600 hover:bg-green-700"
-                          : popupMessage.type === "info"
+                      className={`inline-flex justify-center px-4 py-2 text-sm font-medium text-white rounded-md ${popupMessage.type === "success"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : popupMessage.type === "info"
                           ? "bg-blue-600 hover:bg-blue-700"
                           : "bg-red-600 hover:bg-red-700"
-                      } focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        popupMessage.type === "success"
+                        } focus:outline-none focus:ring-2 focus:ring-offset-2 ${popupMessage.type === "success"
                           ? "focus:ring-green-500"
                           : popupMessage.type === "info"
-                          ? "focus:ring-blue-500"
-                          : "focus:ring-red-500"
-                      }`}
+                            ? "focus:ring-blue-500"
+                            : "focus:ring-red-500"
+                        }`}
                       onClick={closePopup}
                     >
                       Continue

@@ -48,11 +48,10 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
       <div
-        className={`mb-10 text-center transform transition-all duration-1000 ${
-          animateTitle
+        className={`mb-10 text-center transform transition-all duration-1000 ${animateTitle
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-12"
-        }`}
+          }`}
       >
         <div className="flex items-center justify-center mb-4">
           <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg flex items-center justify-center transform rotate-12 hover:rotate-0 transition-transform duration-500">
@@ -199,9 +198,8 @@ const Login = () => {
                 disabled={loading}
               >
                 <span
-                  className={`flex justify-center items-center ${
-                    loading ? "opacity-0" : "opacity-100"
-                  } transition-opacity`}
+                  className={`flex justify-center items-center ${loading ? "opacity-0" : "opacity-100"
+                    } transition-opacity`}
                 >
                   <span>Sign In</span>
                   <ArrowRight

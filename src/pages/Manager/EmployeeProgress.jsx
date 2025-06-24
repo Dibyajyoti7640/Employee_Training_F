@@ -9,7 +9,7 @@ const EmployeeProgress = ({ userId }) => {
   const [courses, setCourses] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState('grid');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -51,14 +51,14 @@ const EmployeeProgress = ({ userId }) => {
   const calculateProgress = (startDate, endDate, status) => {
     if (status === 'Completed') return 100;
     if (status === 'Dropped') return 0;
-    
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     const today = new Date();
-    
+
     if (today < start) return 0;
     if (today > end) return 100;
-    
+
     const totalDuration = end - start;
     const elapsed = today - start;
     return Math.round((elapsed / totalDuration) * 100);
@@ -85,7 +85,7 @@ const EmployeeProgress = ({ userId }) => {
         setRegistrations(employeeRegistrations);
 
         const courseIds = [...new Set(employeeRegistrations.map(reg => reg.programId))];
-        
+
         if (courseIds.length > 0) {
           try {
             const courseDetailsPromises = courseIds.map(id =>
@@ -93,7 +93,7 @@ const EmployeeProgress = ({ userId }) => {
             );
 
             const courseResponses = await Promise.all(courseDetailsPromises);
-            
+
             const courseMap = {};
             courseResponses.forEach(response => {
               const course = response.data;
@@ -117,7 +117,7 @@ const EmployeeProgress = ({ userId }) => {
   const filteredRegistrations = registrations
     .filter(registration => {
       const course = courses[registration.programId] || {};
-      const matchesSearch = course.title 
+      const matchesSearch = course.title
         ? course.title.toLowerCase().includes(searchTerm.toLowerCase())
         : false;
       const matchesFilter = filterStatus === 'all' || registration.status === filterStatus;
@@ -126,7 +126,7 @@ const EmployeeProgress = ({ userId }) => {
     .sort((a, b) => {
       const courseA = courses[a.programId] || {};
       const courseB = courses[b.programId] || {};
-      
+
       if (sortBy === 'date') {
         return new Date(b.registeredAt) - new Date(a.registeredAt);
       } else if (sortBy === 'title') {
@@ -218,7 +218,7 @@ const EmployeeProgress = ({ userId }) => {
         <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
           <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Course Progress</span>
         </h2>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -232,7 +232,7 @@ const EmployeeProgress = ({ userId }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="flex space-x-2">
             <select
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200"
@@ -245,7 +245,7 @@ const EmployeeProgress = ({ userId }) => {
               <option value="Completed">Completed</option>
               <option value="Dropped">Dropped</option>
             </select>
-            
+
             <select
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200"
               value={sortBy}
@@ -255,7 +255,7 @@ const EmployeeProgress = ({ userId }) => {
               <option value="title">Sort by Title</option>
               <option value="progress">Sort by Progress</option>
             </select>
-            
+
             <div className="bg-gray-100 p-1 rounded-lg flex">
               <button
                 onClick={() => setViewMode('grid')}
@@ -285,25 +285,24 @@ const EmployeeProgress = ({ userId }) => {
           {filteredRegistrations.map(registration => {
             const course = courses[registration.programId] || {};
             const daysRemaining = course.endDate ? calculateDaysRemaining(course.endDate) : 0;
-            const progressPercentage = course.startDate && course.endDate 
+            const progressPercentage = course.startDate && course.endDate
               ? calculateProgress(course.startDate, course.endDate, registration.status)
               : statusConfig[registration.status]?.progress || 0;
-            
+
             return (
-              <div 
-                key={registration.registrationId} 
+              <div
+                key={registration.registrationId}
                 className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1 group"
               >
                 <div className="p-4 border-b border-gray-200 relative">
-                  <div 
+                  <div
                     className="absolute top-0 right-0 w-16 h-16 overflow-hidden"
                     style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}
                   >
-                    <div className={`w-full h-full ${
-                      registration.status === 'Completed' ? 'bg-emerald-100' : 
-                      registration.status === 'In Progress' ? 'bg-amber-100' : 
-                      registration.status === 'Dropped' ? 'bg-rose-100' : 'bg-indigo-100'
-                    }`}></div>
+                    <div className={`w-full h-full ${registration.status === 'Completed' ? 'bg-emerald-100' :
+                        registration.status === 'In Progress' ? 'bg-amber-100' :
+                          registration.status === 'Dropped' ? 'bg-rose-100' : 'bg-indigo-100'
+                      }`}></div>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-indigo-600 transition-colors duration-300">
                     {course.title || "Unknown Course"}
@@ -368,12 +367,11 @@ const EmployeeProgress = ({ userId }) => {
                       <span>{progressPercentage}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                          registration.status === 'Completed' ? 'bg-emerald-500' : 
-                          registration.status === 'In Progress' ? 'bg-amber-500' : 
-                          registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
-                        }`}
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === 'Completed' ? 'bg-emerald-500' :
+                            registration.status === 'In Progress' ? 'bg-amber-500' :
+                              registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
+                          }`}
                         style={{ width: `${progressPercentage}%` }}
                       ></div>
                     </div>
@@ -389,7 +387,7 @@ const EmployeeProgress = ({ userId }) => {
                     <span className="text-sm text-gray-600">Course ended</span>
                   )}
 
-                  
+
                 </div>
               </div>
             );
@@ -412,12 +410,12 @@ const EmployeeProgress = ({ userId }) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRegistrations.map(registration => {
                   const course = courses[registration.programId] || {};
-                  const progressPercentage = course.startDate && course.endDate 
+                  const progressPercentage = course.startDate && course.endDate
                     ? calculateProgress(course.startDate, course.endDate, registration.status)
                     : statusConfig[registration.status]?.progress || 0;
-                  
+
                   return (
-                    <tr 
+                    <tr
                       key={registration.registrationId}
                       className="hover:bg-gray-50 transition-colors duration-150"
                     >
@@ -448,19 +446,18 @@ const EmployeeProgress = ({ userId }) => {
                             <span>{progressPercentage}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                                registration.status === 'Completed' ? 'bg-emerald-500' : 
-                                registration.status === 'In Progress' ? 'bg-amber-500' : 
-                                registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
-                              }`}
+                            <div
+                              className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === 'Completed' ? 'bg-emerald-500' :
+                                  registration.status === 'In Progress' ? 'bg-amber-500' :
+                                    registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
+                                }`}
                               style={{ width: `${progressPercentage}%` }}
                             ></div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
+                        <button
                           onClick={() => navigate(`/dashboard/course/${registration.programId}`)}
                           className="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
                         >
