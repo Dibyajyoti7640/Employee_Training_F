@@ -50,7 +50,6 @@ const CalendarComponent = () => {
   const [isEmailFileUploaded, setIsEmailFileUploaded] = useState(false);
   const [isEmployee, setIsEmployee] = useState(false);
 
-  
   const {
     title: eventTitle,
     time: eventTime,
@@ -63,7 +62,6 @@ const CalendarComponent = () => {
     endingDate,
   } = eventForm;
 
-  
   useEffect(() => {
     const fetchDataAndCheckState = async () => {
       try {
@@ -93,10 +91,8 @@ const CalendarComponent = () => {
         if (locationState?.prefilledEvent && locationState?.showAddEventModal) {
           const { prefilledEvent, selectedDate } = locationState;
 
-          
           dispatch(setSelectedDate(selectedDate));
 
-     
           dispatch(
             updateEventForm({
               title: prefilledEvent.title,
@@ -110,7 +106,7 @@ const CalendarComponent = () => {
             })
           );
 
-          setShowModal(true);        
+          setShowModal(true);
           window.history.replaceState({ ...window.history.state, usr: {} }, "");
         }
       } catch (err) {

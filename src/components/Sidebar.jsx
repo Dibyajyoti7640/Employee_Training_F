@@ -9,6 +9,7 @@ import {
   UserCheck,
   BarChart2,
   CalendarIcon,
+  Award,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 
@@ -89,6 +90,11 @@ const Sidebar = ({ collapsed = false }) => {
           icon: <BarChart2 size={20} />,
         },
         { to: "employee/quizzes", label: "Quiz", icon: <FileText size={20} /> },
+        {
+          to: "employee/certificates",
+          label: "Certificates",
+          icon: <Award size={20} />,
+        },
         {
           to: "calendar",
           label: "Calendar",

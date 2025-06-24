@@ -26,6 +26,7 @@ import EmployeeQuiz from "./pages/Employee/Quizzes";
 import { initializeAuth } from "./Slices/AuthSlice";
 import CalendarComponent from "./components/CalendarComponent";
 import { useDispatch, useSelector } from "react-redux";
+import EmployeeCertificates from "./pages/Employee/EmployeeCertificates";
 
 function App() {
   const dispatch = useDispatch();
@@ -180,6 +181,14 @@ function App() {
           element={
             <PrivateRoute role="Employee">
               <EmployeeQuiz />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="employee/certificates"
+          element={
+            <PrivateRoute role="Employee">
+              <EmployeeCertificates />
             </PrivateRoute>
           }
         />
