@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../services/api";
-import { motion } from "framer-motion";
+import { keyframes, motion } from "framer-motion";
 import {
   User,
   Trash2,
@@ -10,12 +10,38 @@ import {
   CheckCircle,
   Edit2,
   Save,
+  FileText,
+  BookOpen,
+  Mail,
+  Calendar,
+  MapPin,
+  Award,
 } from "lucide-react";
-
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [programChartData, setProgramChartData] = useState(null);
+  const [certificateChartData, setCertificateChartData] = useState(null);
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -24,6 +50,13 @@ const AdminEmployees = () => {
   const [sortConfig, setSortConfig] = useState({
     key: "fullName",
     direction: "ascending",
+  });
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [employeeDetails, setEmployeeDetails] = useState({
+    fullName: "",
+    email: "",
+    certficateList: [],
+    programList: [],
   });
 
   const [addEmployeeData, setAddEmployeeData] = useState({
@@ -61,11 +94,39 @@ const AdminEmployees = () => {
 
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordErrors, setPasswordErrors] = useState([]);
+  const getInitials = (user) => {
+    const name = user || "Unknown";
 
+    const nameParts = name.trim().split(" ");
+    if (nameParts.length >= 2) {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const getRandomPastelColor = (seed = "") => {
+    if (!seed) seed = "default";
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 70%, 85%)`;
+  };
   useEffect(() => {
     fetchEmployees();
   }, []);
-
+  useEffect(() => {
+    if (isDetailsModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isDetailsModalOpen]);
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -92,6 +153,103 @@ const AdminEmployees = () => {
         });
         setIsLoading(false);
       });
+  };
+
+  const fetchEmployeeDetails = async (userId) => {
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/EmployeeDetails/${userId}`);
+      setEmployeeDetails(response.data);
+
+      prepareChartData(response.data);
+
+      setIsDetailsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching employee details:", error);
+      setNotification({
+        show: true,
+        message: "Failed to fetch employee details",
+        type: "error",
+      });
+    }
+    setIsLoading(false);
+  };
+  const today = new Date();
+  const parsedPrograms = employeeDetails.programList.map((program) => {
+    const startMatch = program.match(
+      /Starts on: ([\d]{2} [A-Za-z]{3} [\d]{4})/
+    );
+    const endMatch = program.match(/Ends on: ([\d]{2} [A-Za-z]{3} [\d]{4})/);
+
+    const startDate = startMatch ? new Date(startMatch[1]) : null;
+    const endDate = endMatch ? new Date(endMatch[1]) : null;
+
+    const isOngoing =
+      startDate && endDate && today >= startDate && today <= endDate;
+    const isUpcoming = startDate && today < startDate;
+    const isCompleted = endDate && today > endDate;
+    return {
+      status: isOngoing ? "Ongoing" : isUpcoming ? "Upcoming" : "Completed",
+    };
+  });
+  const prepareChartData = (data) => {
+    if (data.programList && data.programList.length > 0) {
+      const programCounts = data.programList.reduce((acc, program) => {
+        acc[program] = (acc[program] || 0) + 1;
+        return acc;
+      }, {});
+
+      setProgramChartData({
+        labels: Object.keys(programCounts),
+        datasets: [
+          {
+            label: "Training Programs",
+            data: Object.values(programCounts),
+            backgroundColor: [
+              "rgba(54, 162, 235, 0.6)",
+              "rgba(255, 99, 132, 0.6)",
+              "rgba(75, 192, 192, 0.6)",
+              "rgba(255, 206, 86, 0.6)",
+              "rgba(153, 102, 255, 0.6)",
+            ],
+            borderColor: [
+              "rgba(54, 162, 235, 1)",
+              "rgba(255, 99, 132, 1)",
+              "rgba(75, 192, 192, 1)",
+              "rgba(255, 206, 86, 1)",
+              "rgba(153, 102, 255, 1)",
+            ],
+            borderWidth: 1,
+          },
+        ],
+      });
+    }
+    if (data.certficateList && data.certficateList.length > 0) {
+      const certificateDates = data.certficateList.map((cert) =>
+        new Date(cert.submittedOn).toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+      );
+
+      const dateCounts = certificateDates.reduce((acc, date) => {
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
+
+      setCertificateChartData({
+        labels: Object.keys(dateCounts),
+        datasets: [
+          {
+            label: "Certificates Earned",
+            data: Object.values(dateCounts),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      });
+    }
   };
 
   const validatePassword = (password) => {
@@ -251,7 +409,6 @@ const AdminEmployees = () => {
           type: "success",
         });
         setIsLoading(false);
-        console.log(addEmployeeData);
       })
       .then(() => {
         api.post("/Email", {
@@ -260,7 +417,6 @@ const AdminEmployees = () => {
           body: `Your account has been created successfully.\nYour Credentials:\nEmployee ID: ${addEmployeeData.empId}\nEmail: ${addEmployeeData.email}\nPassword: ${addEmployeeData.password}`,
         });
       })
-
       .catch((error) => {
         console.error("Error adding employee:", error);
         setNotification({
@@ -345,6 +501,15 @@ const AdminEmployees = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
           Employee Management
@@ -375,6 +540,207 @@ const AdminEmployees = () => {
             <X className="h-4 w-4" />
           </button>
         </motion.div>
+      )}
+
+      {/* Employee Details Modal */}
+
+      {isDetailsModalOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 p-4 backdrop-blur-sm"
+            onClick={() => setIsDetailsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 30, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-3xl font-bold tracking-tight">
+                      Employee Details
+                    </h3>
+                    <p className="text-blue-100 mt-1 text-sm font-medium">
+                      Complete employee information and achievements
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsDetailsModalOpen(false)}
+                    className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200 p-2 rounded-full"
+                    aria-label="Close"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="scrollbar-hide p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+                {/* Profile Section */}
+                <div className="mb-8">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl border border-blue-200 shadow-sm">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex-shrink-0">
+                        {/* <div className="h-24 w-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                        <User className="h-12 w-12 text-white" />
+                      </div> */}
+                        <button
+                          className="flex items-center justify-center w-30 h-30 rounded-full ring-2 ring-indigo-500 ring-offset-2 ring-offset-white focus:outline-none hover:scale-105 transition duration-300"
+                          aria-haspopup="true"
+                          style={{
+                            backgroundColor: getRandomPastelColor(
+                              employeeDetails?.email ||
+                                employeeDetails?.fullName ||
+                                "default"
+                            ),
+                          }}
+                        >
+                          <span className="text-4xl font-semibold text-black">
+                            {getInitials(employeeDetails.fullName)}
+                          </span>
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-gray-800 mb-2">
+                          {employeeDetails.fullName}
+                        </h4>
+                        <p className="text-gray-600 text-lg font-medium flex items-center">
+                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                          {employeeDetails.email}
+                        </p>
+                        <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                          <span className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {employeeDetails.department || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Training Programs and Certificates Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Training Programs */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-8 rounded-2xl border border-green-200 shadow-sm">
+                    <div className="flex items-center mb-6">
+                      <div className="h-12 w-12 bg-green-500 rounded-xl flex items-center justify-center shadow-md mr-4">
+                        <BookOpen className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-gray-800">
+                          Training Programs
+                        </h4>
+                      </div>
+                    </div>
+
+                    {employeeDetails.programList &&
+                    employeeDetails.programList.length > 0 ? (
+                      <div className="space-y-3">
+                        {employeeDetails.programList.map((program, index) => (
+                          <div
+                            key={index}
+                            className="bg-white p-4 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-gray-800 text-sm">
+                                {program}
+                              </span>
+                              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+                                {parsedPrograms[index]?.status || "Upcoming"}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 font-medium">
+                          No training programs
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          Programs will appear here when assigned
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Certificates */}
+                  <div className="bg-gradient-to-br from-purple-50 to-violet-100 p-8 rounded-2xl border border-purple-200 shadow-sm">
+                    <div className="flex items-center mb-6">
+                      <div className="h-12 w-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-md mr-4">
+                        <Award className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-gray-800">
+                          Certificates
+                        </h4>
+                      </div>
+                    </div>
+
+                    {employeeDetails.certficateList &&
+                    employeeDetails.certficateList.length > 0 ? (
+                      <div className="space-y-4">
+                        {employeeDetails.certficateList.map((certificate) => (
+                          <div
+                            key={certificate.id}
+                            className="bg-white p-5 rounded-xl border border-purple-200 shadow-sm hover:shadow-md transition-all duration-200"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <h5 className="font-bold text-gray-800 text-base leading-tight">
+                                {certificate.title}
+                              </h5>
+                              <FileText className="h-5 w-5 text-purple-400 flex-shrink-0 ml-2" />
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              <span>
+                                Submitted on{" "}
+                                {new Date(
+                                  certificate.submittedOn
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-purple-100">
+                              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+                                {certificate.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Award className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 font-medium">
+                          No certificates
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          Certificates will appear here when earned
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stats Summary */}
+              </div>
+            </motion.div>
+          </motion.div>
+        </>
       )}
 
       <div className="flex justify-between items-center mb-6">
@@ -507,7 +873,7 @@ const AdminEmployees = () => {
                 <select
                   name="department"
                   value={addEmployeeData.department}
-                  onChange={handleAddInputChange}
+                  onChange={handleAddEmployee}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
                   required
                 >
@@ -664,6 +1030,10 @@ const AdminEmployees = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                    <td
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                    >
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-500">
                           <User className="h-5 w-5" />
@@ -685,7 +1055,10 @@ const AdminEmployees = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                    >
                       {editingEmployee === emp.userId ? (
                         <input
                           type="email"
@@ -698,7 +1071,10 @@ const AdminEmployees = () => {
                         <div className="text-sm text-gray-500">{emp.email}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td
+                      className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                    >
                       {editingEmployee === emp.userId ? (
                         <select
                           name="department"
@@ -719,7 +1095,10 @@ const AdminEmployees = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
+                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                    >
                       {editingEmployee === emp.userId ? (
                         <select
                           name="role"
@@ -794,6 +1173,15 @@ const AdminEmployees = () => {
           </div>
         )}
       </div>
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };
