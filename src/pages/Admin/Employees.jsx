@@ -1034,7 +1034,10 @@ const AdminEmployees = () => {
                     {/* <td className="px-6 py-4 whitespace-nowrap"> */}
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                      onClick={() =>
+                        editingEmployee !== emp.userId &&
+                        fetchEmployeeDetails(emp.userId)
+                      }
                     >
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-500">
@@ -1059,7 +1062,10 @@ const AdminEmployees = () => {
                     </td>
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                      onClick={() =>
+                        editingEmployee !== emp.userId &&
+                        fetchEmployeeDetails(emp.userId)
+                      }
                     >
                       {editingEmployee === emp.userId ? (
                         <input
@@ -1075,7 +1081,10 @@ const AdminEmployees = () => {
                     </td>
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                      onClick={() =>
+                        editingEmployee !== emp.userId &&
+                        fetchEmployeeDetails(emp.userId)
+                      }
                     >
                       {editingEmployee === emp.userId ? (
                         <select
@@ -1099,7 +1108,10 @@ const AdminEmployees = () => {
                     </td>
                     <td
                       className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer"
-                      onClick={() => fetchEmployeeDetails(emp.userId)}
+                      onClick={() =>
+                        editingEmployee !== emp.userId &&
+                        fetchEmployeeDetails(emp.userId)
+                      }
                     >
                       {editingEmployee === emp.userId ? (
                         <select
