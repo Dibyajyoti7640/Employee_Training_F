@@ -522,10 +522,11 @@ const AdminEmployees = () => {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${notification.type === "success"
-            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-            : "bg-red-100 text-red-800 border-l-4 border-red-500"
-            }`}
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
+            notification.type === "success"
+              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+              : "bg-red-100 text-red-800 border-l-4 border-red-500"
+          }`}
         >
           {notification.type === "success" ? (
             <CheckCircle className="mr-2 h-5 w-5" />
@@ -910,10 +911,11 @@ const AdminEmployees = () => {
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={passwordErrors.length > 0}
-              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${passwordErrors.length > 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 text-white hover:bg-green-700"
-                }`}
+              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${
+                passwordErrors.length > 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }`}
             >
               Register Employee
             </motion.button>
@@ -1029,7 +1031,7 @@ const AdminEmployees = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* <td className="px-6 py-4 whitespace-nowrap"> */}
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
                       onClick={() => fetchEmployeeDetails(emp.userId)}
