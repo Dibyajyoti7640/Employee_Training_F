@@ -38,6 +38,11 @@ const Sidebar = ({ collapsed = false }) => {
           label: "Employee List",
           icon: <Users size={20} />,
         },
+        {
+          to: "admin/certificates",
+          label: "Certificates",
+          icon: <Award size={20} />,
+        },
         { to: "admin/quizzes", label: "Quiz", icon: <FileText size={20} /> },
         {
           to: "admin/responses",
@@ -111,9 +116,8 @@ const Sidebar = ({ collapsed = false }) => {
       <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
         <button
           type="button"
-          className={`text-xl font-bold cursor-pointer text-white transition-opacity duration-300 ${
-            collapsed ? "opacity-0" : "opacity-100"
-          }`}
+          className={`text-xl font-bold cursor-pointer text-white transition-opacity duration-300 ${collapsed ? "opacity-0" : "opacity-100"
+            }`}
           onClick={() => {
             navigate("/dashboard");
           }}
@@ -128,19 +132,17 @@ const Sidebar = ({ collapsed = false }) => {
             <Link
               key={link.to}
               to={link.to}
-              className={`flex items-center px-3 py-3 rounded-md transition-colors duration-200 group ${
-                isActive(link.to)
+              className={`flex items-center px-3 py-3 rounded-md transition-colors duration-200 group ${isActive(link.to)
                   ? "bg-indigo-600 text-white"
                   : "text-gray-300 hover:bg-gray-800 hover:text-white"
-              }`}
+                }`}
             >
               <span className="mr-3 text-lg transition-transform duration-200 group-hover:scale-110">
                 {link.icon}
               </span>
               <span
-                className={`transition-opacity duration-300 ${
-                  collapsed ? "opacity-0 hidden" : "opacity-100"
-                }`}
+                className={`transition-opacity duration-300 ${collapsed ? "opacity-0 hidden" : "opacity-100"
+                  }`}
               >
                 {link.label}
               </span>
@@ -150,9 +152,8 @@ const Sidebar = ({ collapsed = false }) => {
       </nav>
 
       <div
-        className={`px-4 py-4 mt-auto border-t border-gray-800 ${
-          collapsed ? "hidden" : "block"
-        }`}
+        className={`px-4 py-4 mt-auto border-t border-gray-800 ${collapsed ? "hidden" : "block"
+          }`}
       >
         <div className="flex items-center">
           <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-medium">

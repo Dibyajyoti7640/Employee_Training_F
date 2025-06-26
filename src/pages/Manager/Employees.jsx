@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Search, Filter, RefreshCw, ChevronDown, ChevronUp, User, Mail, Briefcase, AlertCircle, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import EmployeeProgress from './EmployeeProgress';
 
 const ManagerEmployees = () => {
@@ -14,7 +13,6 @@ const ManagerEmployees = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const navigate = useNavigate();
 
   const fetchEmployees = () => {
     setLoading(true);

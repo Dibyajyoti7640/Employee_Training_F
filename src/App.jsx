@@ -10,6 +10,7 @@ import AdminCourseEdit from "./pages/Admin/CourseEdit";
 import AdminEmployees from "./pages/Admin/Employees";
 import AdminQuizzes from "./pages/Admin/Quizzes";
 import AdminQuizResponses from "./pages/Admin/ViewQuiz";
+import AdminCertificates from "./pages/Admin/AdminCertificates";
 
 import ManagerCourses from "./pages/Manager/Courses";
 import ManagerCourseDetails from "./pages/Manager/CourseDetails";
@@ -23,10 +24,11 @@ import EmployeeCourseDetails from "./pages/Employee/CourseDetails";
 import EmployeeRegister from "./pages/Employee/Register";
 import EmployeeProgress from "./pages/Employee/Progress";
 import EmployeeQuiz from "./pages/Employee/Quizzes";
+import EmployeeCertificates from "./pages/Employee/EmployeeCertificates";
+
 import { initializeAuth } from "./Slices/AuthSlice";
 import CalendarComponent from "./components/CalendarComponent";
 import { useDispatch, useSelector } from "react-redux";
-import EmployeeCertificates from "./pages/Employee/EmployeeCertificates";
 
 function App() {
   const dispatch = useDispatch();
@@ -77,6 +79,14 @@ function App() {
           element={
             <PrivateRoute role="Admin">
               <AdminEmployees />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="admin/certificates"
+          element={
+            <PrivateRoute role="Admin">
+              <AdminCertificates />
             </PrivateRoute>
           }
         />
@@ -194,9 +204,9 @@ function App() {
         />
         <Route path="calendar" element={<CalendarComponent />} />
       </Route>
+
     </Routes>
   );
 }
 
 export default App;
-// This code initializes the Redux store and sets up the main application routes.

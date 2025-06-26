@@ -65,6 +65,7 @@ const AdminEmployees = () => {
     password: "",
     role: "",
     department: "",
+    empId: "",
   });
 
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -73,10 +74,12 @@ const AdminEmployees = () => {
     email: "",
     role: "",
     department: "",
+    empId: "",
   });
 
   const [showAddForm, setShowAddForm] = useState(false);
   const departments = [
+    "L&D",
     "HR",
     "RMG",
     "Microsoft",
@@ -306,6 +309,7 @@ const AdminEmployees = () => {
       email: employee.email,
       role: employee.role || "",
       department: employee.department || "",
+      empId: employee.empId || "",
     });
   };
 
@@ -334,6 +338,7 @@ const AdminEmployees = () => {
         email: "",
         role: "",
         department: "",
+        empId: "",
       });
 
       setNotification({
@@ -360,6 +365,7 @@ const AdminEmployees = () => {
       email: "",
       role: "",
       department: "",
+      empId: "",
     });
   };
 
@@ -378,10 +384,12 @@ const AdminEmployees = () => {
     api
       .post("/auth/register", addEmployeeData)
       .then((response) => {
+        console.log(response.data);
         const newEmployee = {
           ...response.data,
           department: addEmployeeData.department,
           role: addEmployeeData.role,
+          empId: addEmployeeData.empId,
         };
         setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
         setAddEmployeeData({
@@ -390,6 +398,7 @@ const AdminEmployees = () => {
           password: "",
           role: "",
           department: "",
+          empId: "",
         });
         setShowAddForm(false);
         setPasswordStrength(0);
@@ -405,7 +414,7 @@ const AdminEmployees = () => {
         api.post("/Email", {
           To: `${addEmployeeData.email}`,
           subject: "Account Created Successfully",
-          body: `Your account has been created successfully.\nYour Credentials:\nEmail: ${addEmployeeData.email}\nPassword: ${addEmployeeData.password}`,
+          body: `Your account has been created successfully.\nYour Credentials:\nEmployee ID: ${addEmployeeData.empId}\nEmail: ${addEmployeeData.email}\nPassword: ${addEmployeeData.password}`,
         });
       })
       .catch((error) => {
@@ -469,7 +478,8 @@ const AdminEmployees = () => {
       (emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+        emp.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.empId?.toString().toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStrengthColor = () => {
@@ -512,11 +522,10 @@ const AdminEmployees = () => {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
-            notification.type === "success"
-              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-              : "bg-red-100 text-red-800 border-l-4 border-red-500"
-          }`}
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${notification.type === "success"
+            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+            : "bg-red-100 text-red-800 border-l-4 border-red-500"
+            }`}
         >
           {notification.type === "success" ? (
             <CheckCircle className="mr-2 h-5 w-5" />
@@ -786,6 +795,21 @@ const AdminEmployees = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
+                  Employee ID
+                </label>
+                <input
+                  type="number"
+                  name="empId"
+                  value={addEmployeeData.empId}
+                  onChange={handleAddInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
+                  required
+                  autoComplete="off"
+                  placeholder="Enter employee ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
                   Full Name
                 </label>
                 <input
@@ -796,6 +820,7 @@ const AdminEmployees = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
                   required
                   autoComplete="off"
+                  placeholder="Enter full name"
                 />
               </div>
               <div className="space-y-2">
@@ -810,6 +835,7 @@ const AdminEmployees = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
                   required
                   autoComplete="off"
+                  placeholder="Enter email address"
                 />
               </div>
               <div className="space-y-2">
@@ -824,6 +850,7 @@ const AdminEmployees = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
                   required
                   autoComplete="new-password"
+                  placeholder="Enter password"
                 />
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div
@@ -883,11 +910,10 @@ const AdminEmployees = () => {
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={passwordErrors.length > 0}
-              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${
-                passwordErrors.length > 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-green-700"
-              }`}
+              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${passwordErrors.length > 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 text-white hover:bg-green-700"
+                }`}
             >
               Register Employee
             </motion.button>
@@ -909,6 +935,19 @@ const AdminEmployees = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                    onClick={() => requestSort("empId")}
+                  >
+                    <div className="flex items-center">
+                      Employee ID
+                      {sortConfig.key === "empId" && (
+                        <span className="ml-1">
+                          {sortConfig.direction === "ascending" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                     onClick={() => requestSort("fullName")}
@@ -975,6 +1014,22 @@ const AdminEmployees = () => {
                     transition={{ delay: index * 0.05 }}
                     className="hover:bg-gray-50 transition-colors duration-150"
                   >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {editingEmployee === emp.userId ? (
+                        <input
+                          type="number"
+                          name="empId"
+                          value={editEmployeeData.empId}
+                          onChange={handleEditInputChange}
+                          className="text-sm font-medium text-gray-900 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-20"
+                        />
+                      ) : (
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                          #{emp.empId || "N/A"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                     <td
                       className="px-6 py-4 whitespace-nowrap cursor-pointer"
                       onClick={() => fetchEmployeeDetails(emp.userId)}
@@ -1130,4 +1185,5 @@ const AdminEmployees = () => {
     </div>
   );
 };
+
 export default AdminEmployees;

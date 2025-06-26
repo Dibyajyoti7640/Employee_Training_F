@@ -30,6 +30,7 @@ const Dashboard = () => {
   console.log(userRole)
   const userId = user?.userId;
   const [currentProgramPage, setCurrentProgramPage] = useState(1);
+  const [adminProgramPage, setAdminProgramPage] = useState(1);
   const programsPerPage = 4;
 
   const [dashboardData, setDashboardData] = useState({
@@ -326,6 +327,22 @@ const Dashboard = () => {
     const categoryData = getCategoryData();
     const registrationStatusData = getRegistrationStatusData();
 
+    const totalAdminPrograms = dashboardData.programs.length;
+    const totalAdminPages = Math.ceil(totalAdminPrograms / programsPerPage);
+    const startAdminIndex = (adminProgramPage - 1) * programsPerPage;
+    const endAdminIndex = startAdminIndex + programsPerPage;
+    const currentAdminPrograms = dashboardData.programs.slice(startAdminIndex, endAdminIndex);
+
+    const goToNextAdminPage = () => {
+      if (adminProgramPage < totalAdminPages) setAdminProgramPage(adminProgramPage + 1);
+    };
+    const goToPrevAdminPage = () => {
+      if (adminProgramPage > 1) setAdminProgramPage(adminProgramPage - 1);
+    };
+    const goToAdminPage = (pageNumber) => {
+      setAdminProgramPage(pageNumber);
+    };
+
     return (
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
@@ -408,7 +425,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {dashboardData.programs.slice(0, 5).map(program => {
+                {currentAdminPrograms.map(program => {
                   const programRegistrations = dashboardData.registrations.filter(
                     r => r.programId === program.programId
                   ).length;
@@ -448,6 +465,44 @@ const Dashboard = () => {
               </tbody>
             </table>
           </div>
+          {totalAdminPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <button
+                onClick={goToPrevAdminPage}
+                disabled={adminProgramPage === 1}
+                className={`px-3 py-2 text-sm font-medium rounded-md ${adminProgramPage === 1
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  }`}
+              >
+                Previous
+              </button>
+              <div className="flex space-x-1">
+                {Array.from({ length: totalAdminPages }, (_, index) => (
+                  <div
+                    key={index + 1}
+                    onClick={() => goToAdminPage(index + 1)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${adminProgramPage === index + 1
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                      }`}
+                  >
+                    {index + 1}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={goToNextAdminPage}
+                disabled={adminProgramPage === totalAdminPages}
+                className={`px-3 py-2 text-sm font-medium rounded-md ${adminProgramPage === totalAdminPages
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {showRegistrationsModal && (
@@ -1009,9 +1064,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50 text-gray-900">
-      {/* <div className='absolute top-3 right-65'>
-        <ThemeToggle />
-      </div> */}
       <div
         className={`fixed inset-0 backdrop-blur-sm bg-black/30 z-20 transition-opacity duration-300 lg:hidden ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
