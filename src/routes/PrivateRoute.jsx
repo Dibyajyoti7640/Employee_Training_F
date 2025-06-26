@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "../Slices/AuthSlice";
 
 const PrivateRoute = ({ children, role }) => {
-  const { user, setUser } = useAuth();
+  const { user, isInitialized } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -11,26 +13,23 @@ const PrivateRoute = ({ children, role }) => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("authToken");
 
-    if (!user) {
-      if (storedUser && storedToken) {
-        setUser(JSON.parse(storedUser));
-        setIsAuthorized(true);
-      } else {
-        setIsAuthorized(false);
-      }
-    } else {
+    if (!user && storedUser && storedToken) {
+      dispatch(setUser(JSON.parse(storedUser)));
       setIsAuthorized(true);
+    } else if (user) {
+      setIsAuthorized(true);
+    } else {
+      setIsAuthorized(false);
     }
+
     setLoading(false);
-  }, [user, setUser]);
+  }, [user, dispatch]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading || !isInitialized) return <div>Loading...</div>;
 
-  if (!user && !isAuthorized) {
-    return <Navigate to="/" />;
-  }
+  if (!isAuthorized) return <Navigate to="/" replace />;
 
-  if (user && role && user.role !== role) {
+  if (role && user?.role !== role) {
     return <div className="p-4 text-red-600">Unauthorized Access</div>;
   }
 

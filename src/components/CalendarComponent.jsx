@@ -11,80 +11,132 @@ import {
   FileText,
 } from "lucide-react";
 import api from "../services/api";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setCurrentDate,
+  setSelectedDate,
+  setSelectedEvent,
+  setEvents,
+  setLoading,
+  setError,
+  updateEventForm,
+  resetEventForm,
+  setShowClock,
+  setShowEndTimeClock,
+  setClockTime,
+  setEmailFile,
+} from "../Slices/calendarSlice";
 
 const CalendarComponent = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const dispatch = useDispatch();
+  const {
+    currentDate,
+    selectedDate,
+    selectedEvent,
+    events,
+    isLoading,
+    error,
+    eventForm,
+    emailFile,
+    clock,
+  } = useSelector((state) => state.calendar);
+
+  const { showClock, showEndTimeClock, selectedHour, selectedMinute, isAM } =
+    clock;
+
   const [showModal, setShowModal] = useState(false);
   const [showEventDetails, setShowEventDetails] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventTime, setEventTime] = useState("");
-  const [eventEndTime, setEventEndTime] = useState("");
-  const [eventDescription, setEventDescription] = useState("");
-  const [meetingLink, setMeetingLink] = useState("");
-  const [trainer, setTrainer] = useState("");
-  const [organiser, setOrganiser] = useState("");
-  const [venue, setVenue] = useState("");
-  const [endingDate, setEndingDate] = useState("");
-  const [showClock, setShowClock] = useState(false);
-  const [showEndTimeClock, setShowEndTimeClock] = useState(false);
-  const [selectedHour, setSelectedHour] = useState(12);
-  const [selectedMinute, setSelectedMinute] = useState(0);
-  const [isAM, setIsAM] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [file, setFile] = useState(null);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
-  const [globalEmailFile, setGlobalEmailFile] = useState(null);
   const [isEmailFileUploaded, setIsEmailFileUploaded] = useState(false);
+  const [isEmployee, setIsEmployee] = useState(false);
+
+  const {
+    title: eventTitle,
+    time: eventTime,
+    endTime: eventEndTime,
+    description: eventDescription,
+    meetingLink,
+    trainer,
+    organiser,
+    venue,
+    endingDate,
+  } = eventForm;
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const fetchDataAndCheckState = async () => {
+      try {
+        dispatch(setLoading(true));
+        const response = await api.get("/Calendars");
 
+        const normalizedEvents = response.data.map((event) => ({
+          id: event.id,
+          title: event.meetingName || "Untitled Event",
+          date: event.startingDate || normalizeDate(event.time),
+          time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
+          endTime: event.endTime
+            ? extractTimeFromDateTime(event.endTime)
+            : "00:00",
+          meetingLink: event.teamsLink || "",
+          trainer: event.trainer || "",
+          organiser: event.organiser || "",
+          venue: event.venue || "",
+          endingDate:
+            event.endingDate || event.startingDate || normalizeDate(event.time),
+          rawData: event,
+        }));
+
+        dispatch(setEvents(normalizedEvents));
+
+        const locationState = window.history.state?.usr;
+        if (locationState?.prefilledEvent && locationState?.showAddEventModal) {
+          const { prefilledEvent, selectedDate } = locationState;
+
+          dispatch(setSelectedDate(selectedDate));
+
+          dispatch(
+            updateEventForm({
+              title: prefilledEvent.title,
+              description: prefilledEvent.description,
+              trainer: prefilledEvent.trainer,
+              venue: prefilledEvent.venue,
+              startingDate: prefilledEvent.startingDate,
+              endingDate: prefilledEvent.endingDate,
+              time: prefilledEvent.time,
+              endTime: prefilledEvent.endTime,
+            })
+          );
+
+          setShowModal(true);
+          window.history.replaceState({ ...window.history.state, usr: {} }, "");
+        }
+      } catch (err) {
+        dispatch(
+          setError(
+            err.response?.data?.message ||
+              err.message ||
+              "Failed to fetch events"
+          )
+        );
+        console.error("Error fetching events:", err);
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    fetchDataAndCheckState();
+    const user = localStorage.getItem("user");
+    const role = JSON.parse(user)?.role;
+    console.log("User role:", user);
+    if (role === "Employee") {
+      setIsEmployee(true);
+    }
+  }, [dispatch]);
   const handleGlobalFileUpload = (uploadedFile) => {
-    sessionStorage.setItem("emailFile", uploadedFile.name);
-    setGlobalEmailFile(uploadedFile);
-    setIsEmailFileUploaded(true);
-    setFile(uploadedFile);
-  };
-  const emailFile = sessionStorage.getItem("emailFile");
-  const fetchEvents = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await api.get("/Calendars");
-      console.log("Fetched events:", response.data);
-
-      const normalizedEvents = response.data.map((event) => ({
-        id: event.id,
-        title: event.meetingName || "Untitled Event",
-        date: event.startingDate || normalizeDate(event.time),
-        time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
-        endTime: event.endTime
-          ? extractTimeFromDateTime(event.endTime)
-          : "00:00",
-        meetingLink: event.teamsLink || "",
-        trainer: event.trainer || "",
-        organiser: event.organiser || "",
-        venue: event.venue || "",
-        endingDate:
-          event.endingDate || event.startingDate || normalizeDate(event.time),
-        rawData: event,
-      }));
-      console.log("Normalized events:", response.data);
-
-      setEvents(normalizedEvents);
-    } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to fetch events"
-      );
-      console.error("Error fetching events:", err);
-    } finally {
-      setIsLoading(false);
+    if (uploadedFile) {
+      sessionStorage.setItem("emailFile", uploadedFile.name);
+      dispatch(setEmailFile(uploadedFile));
+      setFile(uploadedFile);
+      setIsEmailFileUploaded(true);
     }
   };
 
@@ -179,108 +231,53 @@ const CalendarComponent = () => {
   };
 
   const handlePreviousMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    const currentDateObj = new Date(currentDate);
+    const newDate = new Date(
+      currentDateObj.getFullYear(),
+      currentDateObj.getMonth() - 1,
+      1
     );
+    dispatch(setCurrentDate(newDate.toISOString()));
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    const currentDateObj = new Date(currentDate);
+    const newDate = new Date(
+      currentDateObj.getFullYear(),
+      currentDateObj.getMonth() + 1,
+      1
     );
+    dispatch(setCurrentDate(newDate.toISOString()));
   };
 
   const handleDateClick = (day) => {
+    const currentDateObj = new Date(currentDate);
     const dateStr = formatDate(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
+      currentDateObj.getFullYear(),
+      currentDateObj.getMonth(),
       day
     );
-    setSelectedDate(dateStr);
+    dispatch(setSelectedDate(dateStr));
     setShowModal(true);
   };
 
   const handleEventClick = (event) => {
-    setSelectedEvent(event);
+    dispatch(setSelectedEvent(event));
     setShowEventDetails(true);
   };
 
-  // const handleAddEvent = async () => {
-  //   if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
-  //     return;
-  //   }
-
-  //   const eventDateTime = new Date(selectedDate + `T${eventTime}:00`);
-  //   const eventEndDateTime = new Date(selectedDate + `T${eventEndTime}:00`);
-
-  //   const newEvent = {
-  //     meetingName: eventTitle.trim(),
-  //     time: eventDateTime.toISOString(),
-  //     endTime: eventEndDateTime.toISOString(),
-  //     teamsLink: meetingLink.trim() || null,
-  //     trainer: trainer.trim() || null,
-  //     organiser: organiser.trim() || null,
-  //     venue: venue.trim() || null,
-  //     startingDate: selectedDate,
-  //     endingDate: endingDate || selectedDate,
-  //     description: eventDescription,
-  //   };
-
-  //   try {
-  //     setIsLoading(true);
-
-  //     const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
-  //     const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} from ${eventTime} to ${eventEndTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
-
-  //     if (file) {
-  //       await sendReminder(reminderSubject, reminderBody);
-  //     }
-
-  //     const response = await api.post("/Calendars", newEvent);
-
-  //     const normalizedEvent = {
-  //       id: response.data.id,
-  //       title: response.data.meetingName || eventTitle.trim(),
-  //       date: response.data.startingDate || selectedDate,
-  //       time: response.data.time
-  //         ? extractTimeFromDateTime(response.data.time)
-  //         : eventTime,
-  //       endTime: response.data.End_time
-  //         ? extractTimeFromDateTime(response.data.End_time)
-  //         : eventEndTime,
-  //       meetingLink: response.data.teamsLink || meetingLink.trim(),
-  //       trainer: response.data.trainer || trainer.trim(),
-  //       organiser: response.data.organiser || organiser.trim(),
-  //       venue: response.data.venue || venue.trim(),
-  //       endingDate: response.data.endingDate || endingDate || selectedDate,
-  //       rawData: response.data,
-  //     };
-
-  //     setEvents([...events, normalizedEvent]);
-  //     resetForm();
-  //     setShowModal(false);
-  //   } catch (err) {
-  //     setError(
-  //       err.response?.data?.message || err.message || "Failed to add event"
-  //     );
-  //     console.error("Error:", err);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const handleAddEvent = async () => {
     if (!eventTitle.trim() || !eventTime.trim() || !selectedDate) {
       return;
     }
 
-    // Create datetime strings in local timezone format
     const startDateTimeLocal = `${selectedDate}T${eventTime}:00`;
     const endDateTimeLocal = `${selectedDate}T${eventEndTime}:00`;
 
     const newEvent = {
       meetingName: eventTitle.trim(),
-      time: startDateTimeLocal, // Store as local datetime string
-      endTime: endDateTimeLocal, // Store as local datetime string
+      time: startDateTimeLocal,
+      endTime: endDateTimeLocal,
       teamsLink: meetingLink.trim() || null,
       trainer: trainer.trim() || null,
       organiser: organiser.trim() || null,
@@ -289,14 +286,14 @@ const CalendarComponent = () => {
       endingDate: endingDate || selectedDate,
       description: eventDescription,
     };
-    console.log(eventEndTime);
+
     try {
-      setIsLoading(true);
+      dispatch(setLoading(true));
 
       const reminderSubject = `Meeting scheduled for ${eventTitle} on ${selectedDate} at ${eventTime}`;
       const reminderBody = `You have a meeting scheduled for ${eventTitle} on ${selectedDate} from ${eventTime} to ${eventEndTime}, location ${venue}. Please join the meeting by clicking this link: ${meetingLink}`;
 
-      if (file) {
+      if (file || emailFile) {
         await sendReminder(reminderSubject, reminderBody);
       }
 
@@ -320,26 +317,25 @@ const CalendarComponent = () => {
         rawData: response.data,
       };
 
-      setEvents([...events, normalizedEvent]);
-      resetForm();
+      dispatch(setEvents([...events, normalizedEvent]));
+      dispatch(resetEventForm());
       setShowModal(false);
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to add event"
+      dispatch(
+        setError(
+          err.response?.data?.message || err.message || "Failed to add event"
+        )
       );
       console.error("Error:", err);
     } finally {
-      setIsLoading(false);
+      dispatch(setLoading(false));
     }
   };
-
-  // Also update the extractTimeFromDateTime function to handle both formats:
 
   const extractTimeFromDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return "00:00";
 
     try {
-      // Handle both ISO string and local datetime string formats
       let date;
 
       if (
@@ -347,7 +343,6 @@ const CalendarComponent = () => {
         !dateTimeStr.endsWith("Z") &&
         !dateTimeStr.includes("+")
       ) {
-        // Local datetime string format (YYYY-MM-DDTHH:mm:ss)
         const [datePart, timePart] = dateTimeStr.split("T");
         const [hours, minutes] = timePart.split(":");
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
@@ -355,7 +350,6 @@ const CalendarComponent = () => {
           "0"
         )}`;
       } else {
-        // ISO string or other formats - convert to local time
         date = new Date(dateTimeStr);
         const hours = String(date.getHours()).padStart(2, "0");
         const minutes = String(date.getMinutes()).padStart(2, "0");
@@ -366,11 +360,11 @@ const CalendarComponent = () => {
       return "00:00";
     }
   };
+
   const sendReminder = async (subject, body) => {
     try {
-      const emailFile = globalEmailFile || file;
-      console.log("Sending reminder with file:", emailFile);
-      if (!emailFile) {
+      const reminderFile = emailFile || file;
+      if (!reminderFile) {
         console.warn(
           "No email list file available - skipping email notification"
         );
@@ -378,7 +372,7 @@ const CalendarComponent = () => {
       }
 
       const formData = new FormData();
-      formData.append("file", emailFile);
+      formData.append("file", reminderFile);
       formData.append("subject", subject);
       formData.append("body", body);
 
@@ -395,29 +389,16 @@ const CalendarComponent = () => {
     }
   };
 
-  const resetForm = () => {
-    setEventTitle("");
-    setEventTime("");
-    setEventEndTime("");
-    setMeetingLink("");
-    setTrainer("");
-    setOrganiser("");
-    setVenue("");
-    setEndingDate("");
-    setShowClock(false);
-    setShowEndTimeClock(false);
-  };
-
   const handleDeleteEvent = async (eventId) => {
     try {
-      setIsLoading(true);
+      dispatch(setLoading(true));
 
       const eventToDelete = events.find((event) => event.id === eventId);
 
       await api.delete(`/Calendars/${eventId}`);
-      setEvents(events.filter((event) => event.id !== eventId));
+      dispatch(setEvents(events.filter((event) => event.id !== eventId)));
 
-      if (emailFile && eventToDelete) {
+      if ((emailFile || file) && eventToDelete) {
         const cancellationSubject = `Event Canceled: ${eventToDelete.title}`;
         const cancellationBody = `The following event has been canceled:
 
@@ -430,30 +411,29 @@ We apologize for any inconvenience this may cause.`;
 
         try {
           await sendReminder(cancellationSubject, cancellationBody);
-          console.log("Cancellation email sent successfully");
         } catch (emailError) {
           console.error("Failed to send cancellation email:", emailError);
-          setError(
-            "Event was deleted but failed to send cancellation emails: " +
-              (emailError.response?.data?.message ||
-                emailError.message ||
-                "Unknown error")
+          dispatch(
+            setError(
+              "Event was deleted but failed to send cancellation emails: " +
+                (emailError.response?.data?.message ||
+                  emailError.message ||
+                  "Unknown error")
+            )
           );
         }
-      } else if (!globalEmailFile) {
-        console.log(
-          "No email file uploaded - skipping cancellation notification"
-        );
       }
 
       setShowEventDetails(false);
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to delete event"
+      dispatch(
+        setError(
+          err.response?.data?.message || err.message || "Failed to delete event"
+        )
       );
       console.error("Error deleting event:", err);
     } finally {
-      setIsLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
@@ -480,12 +460,12 @@ We apologize for any inconvenience this may cause.`;
     ).padStart(2, "0")}`;
 
     if (isEndTime) {
-      setEventEndTime(formattedTime);
+      dispatch(updateEventForm({ endTime: formattedTime }));
     } else {
-      setEventTime(formattedTime);
+      dispatch(updateEventForm({ time: formattedTime }));
     }
-    setShowClock(false);
-    setShowEndTimeClock(false);
+    dispatch(setShowClock(false));
+    dispatch(setShowEndTimeClock(false));
   };
 
   const renderClock = (isEndTime = false) => {
@@ -501,7 +481,9 @@ We apologize for any inconvenience this may cause.`;
             </h3>
             <button
               onClick={() =>
-                isEndTime ? setShowEndTimeClock(false) : setShowClock(false)
+                isEndTime
+                  ? dispatch(setShowEndTimeClock(false))
+                  : dispatch(setShowClock(false))
               }
               className="p-1 rounded-full hover:bg-gray-100"
             >
@@ -529,7 +511,9 @@ We apologize for any inconvenience this may cause.`;
                       top: `${y}%`,
                       transform: "translate(-50%, -50%)",
                     }}
-                    onClick={() => setSelectedHour(hour)}
+                    onClick={() =>
+                      dispatch(setClockTime({ selectedHour: hour }))
+                    }
                   >
                     {hour}
                   </button>
@@ -554,7 +538,9 @@ We apologize for any inconvenience this may cause.`;
                       top: `${y}%`,
                       transform: "translate(-50%, -50%)",
                     }}
-                    onClick={() => setSelectedMinute(minute)}
+                    onClick={() =>
+                      dispatch(setClockTime({ selectedMinute: minute }))
+                    }
                   >
                     {minute}
                   </button>
@@ -570,7 +556,7 @@ We apologize for any inconvenience this may cause.`;
               className={`px-4 py-2 rounded-lg ${
                 isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
               }`}
-              onClick={() => setIsAM(true)}
+              onClick={() => dispatch(setClockTime({ isAM: true }))}
             >
               AM
             </button>
@@ -578,7 +564,7 @@ We apologize for any inconvenience this may cause.`;
               className={`px-4 py-2 rounded-lg ${
                 !isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
               }`}
-              onClick={() => setIsAM(false)}
+              onClick={() => dispatch(setClockTime({ isAM: false }))}
             >
               PM
             </button>
@@ -601,8 +587,9 @@ We apologize for any inconvenience this may cause.`;
   };
 
   const renderCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate);
+    const currentDateObj = new Date(currentDate);
+    const daysInMonth = getDaysInMonth(currentDateObj);
+    const firstDay = getFirstDayOfMonth(currentDateObj);
     const days = [];
 
     for (let i = 0; i < firstDay; i++) {
@@ -616,18 +603,15 @@ We apologize for any inconvenience this may cause.`;
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = formatDate(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
+        currentDateObj.getFullYear(),
+        currentDateObj.getMonth(),
         day
       );
       const dayEvents = getEventsForDate(dateStr);
+      const today = new Date();
       const isToday =
         dateStr ===
-        formatDate(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          new Date().getDate()
-        );
+        formatDate(today.getFullYear(), today.getMonth(), today.getDate());
 
       days.push(
         <div
@@ -699,9 +683,6 @@ We apologize for any inconvenience this may cause.`;
 
     const event = selectedEvent.rawData || selectedEvent;
     const eventDate = new Date(event.time || event.startingDate);
-    const eventEndDate = new Date(
-      event.End_time || event.time || event.startingDate
-    );
     const formattedDate = eventDate.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -712,11 +693,10 @@ We apologize for any inconvenience this may cause.`;
       hour: "2-digit",
       minute: "2-digit",
     });
-    console.log(formattedTime, eventEndTime);
 
     return (
       <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl p-6 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto  shadow-2xl border border-purple-100">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85vh] scrollbar-hide overflow-y-auto shadow-2xl border border-purple-100">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-purple-800">
@@ -740,8 +720,7 @@ We apologize for any inconvenience this may cause.`;
               <div>
                 <h4 className="text-sm font-semibold text-gray-500">Time</h4>
                 <p className="text-gray-800">
-                  {formattedTime} - {eventEndTime}
-                  {console.log(eventEndTime)}
+                  {formattedTime} - {selectedEvent.endTime}
                 </p>
               </div>
             </div>
@@ -785,6 +764,7 @@ We apologize for any inconvenience this may cause.`;
                 </div>
               </div>
             )}
+
             {event.description && (
               <div className="flex items-start">
                 <div className="bg-gray-100 p-3 rounded-lg mr-4">
@@ -815,13 +795,15 @@ We apologize for any inconvenience this may cause.`;
             )}
 
             <div className="flex space-x-3 pt-4">
-              <button
-                onClick={() => handleDeleteEvent(event.id)}
-                disabled={isLoading}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-              >
-                {isLoading ? "Deleting..." : "Delete Event"}
-              </button>
+              {!isEmployee && (
+                <button
+                  onClick={() => handleDeleteEvent(event.id)}
+                  disabled={isLoading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
+                >
+                  {isLoading ? "Deleting..." : "Delete Event"}
+                </button>
+              )}
               <button
                 onClick={() => setShowEventDetails(false)}
                 disabled={isLoading}
@@ -834,6 +816,12 @@ We apologize for any inconvenience this may cause.`;
         </div>
       </div>
     );
+  };
+
+  const resetForm = () => {
+    dispatch(resetEventForm());
+    setFile(null);
+    setIsEmailFileUploaded(false);
   };
 
   return (
@@ -864,7 +852,8 @@ We apologize for any inconvenience this may cause.`;
               <ChevronLeft size={20} />
             </button>
             <h2 className="text-2xl font-bold text-gray-800 min-w-64 text-center px-4">
-              {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {months[new Date(currentDate).getMonth()]}{" "}
+              {new Date(currentDate).getFullYear()}
             </h2>
             <button
               onClick={handleNextMonth}
@@ -891,7 +880,9 @@ We apologize for any inconvenience this may cause.`;
         </div>
       </div>
 
-      {showModal && (
+      {console.log(isEmployee)}
+
+      {showModal && !isEmployee && (
         <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 w-full max-w-5xl h-auto max-h-[85vh] scrollbar-hide overflow-y-auto shadow-2xl border border-purple-100">
             <div className="flex items-center justify-between mb-6">
@@ -961,12 +952,45 @@ We apologize for any inconvenience this may cause.`;
                 <input
                   type="text"
                   value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ title: e.target.value }))
+                  }
                   placeholder="Enter event title"
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    dispatch(setSelectedDate(e.target.value));
+                    dispatch(updateEventForm({ startingDate: e.target.value }));
+                    if (endingDate && e.target.value > endingDate) {
+                      dispatch(updateEventForm({ endingDate: e.target.value }));
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endingDate}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ endingDate: e.target.value }))
+                  }
+                  min={selectedDate}
+                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -979,10 +1003,10 @@ We apologize for any inconvenience this may cause.`;
                       readOnly
                       placeholder="Select time"
                       className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
-                      onClick={() => setShowClock(true)}
+                      onClick={() => dispatch(setShowClock(true))}
                     />
                     <button
-                      onClick={() => setShowClock(true)}
+                      onClick={() => dispatch(setShowClock(true))}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-700"
                     >
                       <Clock size={20} />
@@ -1001,10 +1025,10 @@ We apologize for any inconvenience this may cause.`;
                       readOnly
                       placeholder="Select time"
                       className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
-                      onClick={() => setShowEndTimeClock(true)}
+                      onClick={() => dispatch(setShowEndTimeClock(true))}
                     />
                     <button
-                      onClick={() => setShowEndTimeClock(true)}
+                      onClick={() => dispatch(setShowEndTimeClock(true))}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-700"
                     >
                       <Clock size={20} />
@@ -1012,7 +1036,6 @@ We apologize for any inconvenience this may cause.`;
                   </div>
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Trainer
@@ -1020,12 +1043,13 @@ We apologize for any inconvenience this may cause.`;
                 <input
                   type="text"
                   value={trainer}
-                  onChange={(e) => setTrainer(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ trainer: e.target.value }))
+                  }
                   placeholder="Enter trainer name"
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Organiser
@@ -1033,12 +1057,13 @@ We apologize for any inconvenience this may cause.`;
                 <input
                   type="text"
                   value={organiser}
-                  onChange={(e) => setOrganiser(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ organiser: e.target.value }))
+                  }
                   placeholder="Enter organiser name"
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Venue
@@ -1046,38 +1071,27 @@ We apologize for any inconvenience this may cause.`;
                 <input
                   type="text"
                   value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ venue: e.target.value }))
+                  }
                   placeholder="Enter venue"
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ending Date
-                </label>
-                <input
-                  type="date"
-                  value={endingDate}
-                  onChange={(e) => setEndingDate(e.target.value)}
-                  min={selectedDate}
-                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
                 </label>
                 <textarea
                   value={eventDescription}
-                  onChange={(e) => setEventDescription(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ description: e.target.value }))
+                  }
                   placeholder="Enter event description"
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   rows="3"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Teams Link
@@ -1085,7 +1099,9 @@ We apologize for any inconvenience this may cause.`;
                 <input
                   type="text"
                   value={meetingLink}
-                  onChange={(e) => setMeetingLink(e.target.value)}
+                  onChange={(e) =>
+                    dispatch(updateEventForm({ meetingLink: e.target.value }))
+                  }
                   placeholder="https://teams.microsoft.com/l/meetup-join/..."
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />

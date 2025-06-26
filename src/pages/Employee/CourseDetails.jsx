@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import CourseMaterialModal from "../../components/CourseMaterialModal";
 import api from "../../services/api";
+import CourseMaterialModal from "../../components/CourseMaterialModal";
 import {
   ArrowLeft,
   Calendar,
@@ -19,8 +19,9 @@ import {
   Monitor,
   Building,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 
-const ManagerCourseDetails = () => {
+const EmployeeCourseDetails = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
@@ -50,26 +51,8 @@ const ManagerCourseDetails = () => {
     }
   }, [courseId]);
 
-  const handleDelete = async () => {
-    try {
-      setDeleting(true);
-      await api.delete(`/TrainingPrograms/${courseId}`);
-      navigate("/manager/courses", {
-        state: { message: "Course deleted successfully" },
-      });
-    } catch (error) {
-      console.error("Error deleting course:", error);
-      alert("Failed to delete course. Please try again.");
-      setDeleting(false);
-    }
-  };
-
-  const handleEdit = () => {
-    navigate(`/dashboard/manager/courses/${courseId}/edit`);
-  };
-
   const handleBack = () => {
-    navigate("/dashboard/manager/courses");
+    navigate("/dashboard/employee/courses");
   };
 
   const formatDate = (dateString) => {
@@ -186,23 +169,6 @@ const ManagerCourseDetails = () => {
               </div>
               <p className="text-slate-600 text-lg">Training Program Details</p>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                <Edit3 size={16} />
-                Edit Course
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                <Trash2 size={16} />
-                Delete
-              </button>
-            </div>
           </div>
         </div>
 
@@ -253,8 +219,8 @@ const ManagerCourseDetails = () => {
               </h2>
               <div className="space-y-3">
                 <button
-                  onClick={() => setMaterialModalOpen(true)}
                   className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setMaterialModalOpen(true)}
                 >
                   <BookOpen size={16} />
                   Course Materials
@@ -331,59 +297,16 @@ const ManagerCourseDetails = () => {
           </div>
         </div>
 
-        {deleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-auto">
-              <div className="text-center">
-                <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                  Delete Course
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Are you sure you want to delete "{course.title}"? This action
-                  cannot be undone.
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={() => setDeleteConfirm(false)}
-                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                    disabled={deleting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    disabled={deleting}
-                  >
-                    {deleting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                        Deleting...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 size={16} />
-                        Delete
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <CourseMaterialModal
           isOpen={materialModalOpen}
           onClose={() => setMaterialModalOpen(false)}
           courseId={courseId}
           courseTitle={course.title}
-          userRole="Manager"
+          userRole="Employee"
         />
       </div>
     </div>
   );
 };
 
-export default ManagerCourseDetails;
+export default EmployeeCourseDetails;

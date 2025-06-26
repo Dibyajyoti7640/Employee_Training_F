@@ -1,44 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
-import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Monitor, Award, BookOpen, ChevronRight, Filter, Search, Grid, List, LogOut } from 'lucide-react';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import api from "../../services/api";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import {
+  Calendar,
+  Clock,
+  User,
+  Monitor,
+  Award,
+  BookOpen,
+  ChevronRight,
+  Filter,
+  Search,
+  Grid,
+  List,
+  LogOut,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 
 const EmployeeProgress = () => {
   const [registrations, setRegistrations] = useState([]);
   const [courses, setCourses] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('grid');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
-  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState("grid");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const statusConfig = {
-    'Registered': {
-      color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    Registered: {
+      color: "bg-indigo-100 text-indigo-800 border-indigo-200",
       icon: <BookOpen size={14} className="mr-1" />,
-      progress: 0
+      progress: 0,
     },
-    'In Progress': {
-      color: 'bg-amber-100 text-amber-800 border-amber-200',
+    "In Progress": {
+      color: "bg-amber-100 text-amber-800 border-amber-200",
       icon: <Clock size={14} className="mr-1" />,
-      progress: 50
+      progress: 50,
     },
-    'Completed': {
-      color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    Completed: {
+      color: "bg-emerald-100 text-emerald-800 border-emerald-200",
       icon: <Award size={14} className="mr-1" />,
-      progress: 100
+      progress: 100,
     },
-    'Dropped': {
-      color: 'bg-rose-100 text-rose-800 border-rose-200',
+    Dropped: {
+      color: "bg-rose-100 text-rose-800 border-rose-200",
       icon: <ChevronRight size={14} className="mr-1" />,
-      progress: 0
-    }
+      progress: 0,
+    },
   };
 
   const calculateDaysRemaining = (endDate) => {
@@ -50,8 +63,8 @@ const EmployeeProgress = () => {
   };
 
   const calculateProgress = (startDate, endDate, status) => {
-    if (status === 'Completed') return 100;
-    if (status === 'Dropped') return 0;
+    if (status === "Completed") return 100;
+    if (status === "Dropped") return 0;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -73,9 +86,9 @@ const EmployeeProgress = () => {
         const response = await api.get(`/TrainingPrograms/${programId}`);
         const courseData = response.data;
 
-        setCourses(prev => ({
+        setCourses((prev) => ({
           ...prev,
-          [programId]: courseData
+          [programId]: courseData,
         }));
 
         if (courseData.description) {
@@ -100,11 +113,11 @@ const EmployeeProgress = () => {
 
       await api.delete(`/Registrations/${registrationId}`);
 
-      setRegistrations(prevRegistrations =>
-        prevRegistrations.filter(reg => reg.registrationId !== registrationId)
+      setRegistrations((prevRegistrations) =>
+        prevRegistrations.filter((reg) => reg.registrationId !== registrationId)
       );
 
-      setCourses(prevCourses => {
+      setCourses((prevCourses) => {
         const newCourses = { ...prevCourses };
         delete newCourses[programId];
         return newCourses;
@@ -132,25 +145,27 @@ const EmployeeProgress = () => {
 
       try {
         setLoading(true);
-        const registrationsResponse = await api.get('/Registrations');
+        const registrationsResponse = await api.get("/Registrations");
         const registrationsData = registrationsResponse.data;
         const userRegistrations = registrationsData.filter(
-          reg => reg.userId === Number(user.userId) && reg.programId !== null
+          (reg) => reg.userId === Number(user.userId) && reg.programId !== null
         );
 
         setRegistrations(userRegistrations);
 
-        const courseIds = [...new Set(userRegistrations.map(reg => reg.programId))];
+        const courseIds = [
+          ...new Set(userRegistrations.map((reg) => reg.programId)),
+        ];
 
         if (courseIds.length > 0) {
           try {
-            const courseDetailsPromises = courseIds.map(id =>
+            const courseDetailsPromises = courseIds.map((id) =>
               api.get(`/TrainingPrograms/${id}`)
             );
 
             const courseResponses = await Promise.all(courseDetailsPromises);
             const courseMap = {};
-            courseResponses.forEach(response => {
+            courseResponses.forEach((response) => {
               const course = response.data;
               courseMap[course.programId] = course;
             });
@@ -160,7 +175,9 @@ const EmployeeProgress = () => {
           }
         }
       } catch (err) {
-        setError("Failed to load your course registrations. Please try again later.");
+        setError(
+          "Failed to load your course registrations. Please try again later."
+        );
       } finally {
         setLoading(false);
       }
@@ -170,25 +187,34 @@ const EmployeeProgress = () => {
   }, [user]);
 
   const filteredRegistrations = registrations
-    .filter(registration => {
+    .filter((registration) => {
       const course = courses[registration.programId] || {};
       const matchesSearch = course.title
         ? course.title.toLowerCase().includes(searchTerm.toLowerCase())
         : false;
-      const matchesFilter = filterStatus === 'all' || registration.status === filterStatus;
+      const matchesFilter =
+        filterStatus === "all" || registration.status === filterStatus;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
       const courseA = courses[a.programId] || {};
       const courseB = courses[b.programId] || {};
 
-      if (sortBy === 'date') {
+      if (sortBy === "date") {
         return new Date(b.registeredAt) - new Date(a.registeredAt);
-      } else if (sortBy === 'title') {
-        return (courseA.title || '').localeCompare(courseB.title || '');
-      } else if (sortBy === 'progress') {
-        const progressA = calculateProgress(courseA.startDate, courseA.endDate, a.status);
-        const progressB = calculateProgress(courseB.startDate, courseB.endDate, b.status);
+      } else if (sortBy === "title") {
+        return (courseA.title || "").localeCompare(courseB.title || "");
+      } else if (sortBy === "progress") {
+        const progressA = calculateProgress(
+          courseA.startDate,
+          courseA.endDate,
+          a.status
+        );
+        const progressB = calculateProgress(
+          courseB.startDate,
+          courseB.endDate,
+          b.status
+        );
         return progressB - progressA;
       }
       return 0;
@@ -201,7 +227,9 @@ const EmployeeProgress = () => {
           <div className="h-16 w-16 rounded-full border-t-4 border-b-4 border-indigo-500 animate-spin"></div>
           <div className="h-12 w-12 rounded-full border-t-4 border-b-4 border-indigo-300 animate-spin absolute top-2 left-2"></div>
         </div>
-        <p className="ml-4 text-indigo-600 font-medium animate-pulse">Loading your courses...</p>
+        <p className="ml-4 text-indigo-600 font-medium animate-pulse">
+          Loading your courses...
+        </p>
       </div>
     );
   }
@@ -210,8 +238,19 @@ const EmployeeProgress = () => {
     return (
       <div className="p-6 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 shadow-sm transition-all duration-300 hover:shadow-md">
         <div className="flex items-center mb-3">
-          <svg className="w-6 h-6 text-rose-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          <svg
+            className="w-6 h-6 text-rose-500 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
           </svg>
           <h3 className="font-semibold text-lg">Error Loading Courses</h3>
         </div>
@@ -220,8 +259,19 @@ const EmployeeProgress = () => {
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors duration-300 flex items-center shadow-sm hover:shadow"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            ></path>
           </svg>
           Retry
         </button>
@@ -233,18 +283,42 @@ const EmployeeProgress = () => {
     return (
       <div className="p-6 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 shadow-sm">
         <div className="flex items-center mb-3">
-          <svg className="w-6 h-6 text-amber-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          <svg
+            className="w-6 h-6 text-amber-500 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
           </svg>
           <h3 className="font-semibold text-lg">Authentication Required</h3>
         </div>
-        <p className="mb-4">You need to be logged in to view your course progress.</p>
+        <p className="mb-4">
+          You need to be logged in to view your course progress.
+        </p>
         <button
           onClick={() => navigate("/login")}
           className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors duration-300 flex items-center"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+            ></path>
           </svg>
           Sign In
         </button>
@@ -255,21 +329,47 @@ const EmployeeProgress = () => {
   if (registrations.length === 0) {
     return (
       <div className="text-center p-8">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">My Course Progress</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          My Course Progress
+        </h2>
         <div className="p-8 bg-gray-50 rounded-xl shadow-sm border border-gray-200 max-w-lg mx-auto transform transition-all duration-300 hover:scale-105 hover:shadow-md">
           <div className="mb-6 text-gray-400">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            <svg
+              className="w-16 h-16 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              ></path>
             </svg>
           </div>
-          <p className="text-lg text-gray-600 mb-6">You are not registered for any courses yet.</p>
+          <p className="text-lg text-gray-600 mb-6">
+            You are not registered for any courses yet.
+          </p>
           <button
             className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1"
             onClick={() => navigate("/dashboard/employee/courses")}
           >
             <div className="flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                ></path>
               </svg>
               Browse Available Courses
             </div>
@@ -283,7 +383,9 @@ const EmployeeProgress = () => {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
-          <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">My Course Progress</span>
+          <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            My Course Progress
+          </span>
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -325,15 +427,17 @@ const EmployeeProgress = () => {
 
             <div className="bg-gray-100 p-1 rounded-lg flex">
               <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1 rounded ${viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+                onClick={() => setViewMode("grid")}
+                className={`p-1 rounded ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500"
+                  }`}
                 aria-label="Grid view"
               >
                 <Grid size={18} />
               </button>
               <button
-                onClick={() => setViewMode('list')}
-                className={`p-1 rounded ${viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+                onClick={() => setViewMode("list")}
+                className={`p-1 rounded ${viewMode === "list" ? "bg-white shadow-sm" : "text-gray-500"
+                  }`}
                 aria-label="List view"
               >
                 <List size={18} />
@@ -345,16 +449,25 @@ const EmployeeProgress = () => {
 
       {filteredRegistrations.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-          <p className="text-gray-600">No courses match your search criteria.</p>
+          <p className="text-gray-600">
+            No courses match your search criteria.
+          </p>
         </div>
-      ) : viewMode === 'grid' ? (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRegistrations.map(registration => {
+          {filteredRegistrations.map((registration) => {
             const course = courses[registration.programId] || {};
-            const daysRemaining = course.endDate ? calculateDaysRemaining(course.endDate) : 0;
-            const progressPercentage = course.startDate && course.endDate
-              ? calculateProgress(course.startDate, course.endDate, registration.status)
-              : statusConfig[registration.status]?.progress || 0;
+            const daysRemaining = course.endDate
+              ? calculateDaysRemaining(course.endDate)
+              : 0;
+            const progressPercentage =
+              course.startDate && course.endDate
+                ? calculateProgress(
+                  course.startDate,
+                  course.endDate,
+                  registration.status
+                )
+                : statusConfig[registration.status]?.progress || 0;
 
             return (
               <div
@@ -364,18 +477,28 @@ const EmployeeProgress = () => {
                 <div className="p-4 border-b border-gray-200 relative">
                   <div
                     className="absolute top-0 right-0 w-16 h-16 overflow-hidden"
-                    style={{ clipPath: 'polygon(100% 0, 0 0, 100% 100%)' }}
+                    style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
                   >
-                    <div className={`w-full h-full ${registration.status === 'Completed' ? 'bg-emerald-100' :
-                      registration.status === 'In Progress' ? 'bg-amber-100' :
-                        registration.status === 'Dropped' ? 'bg-rose-100' : 'bg-indigo-100'
-                      }`}></div>
+                    <div
+                      className={`w-full h-full ${registration.status === "Completed"
+                          ? "bg-emerald-100"
+                          : registration.status === "In Progress"
+                            ? "bg-amber-100"
+                            : registration.status === "Dropped"
+                              ? "bg-rose-100"
+                              : "bg-indigo-100"
+                        }`}
+                    ></div>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-indigo-600 transition-colors duration-300">
                     {course.title || "Unknown Course"}
                   </h3>
                   <div className="flex items-center mt-2">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center border ${statusConfig[registration.status]?.color || 'bg-gray-100'}`}>
+                    <span
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center border ${statusConfig[registration.status]?.color ||
+                        "bg-gray-100"
+                        }`}
+                    >
                       {statusConfig[registration.status]?.icon}
                       {registration.status}
                     </span>
@@ -386,32 +509,55 @@ const EmployeeProgress = () => {
                   <div className="space-y-3 text-sm">
                     {course.trainer && (
                       <div className="flex items-start">
-                        <User size={16} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                        <User
+                          size={16}
+                          className="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                        />
                         <div>
-                          <span className="text-gray-500 block text-xs">Trainer</span>
-                          <span className="text-gray-800 font-medium">{course.trainer}</span>
+                          <span className="text-gray-500 block text-xs">
+                            Trainer
+                          </span>
+                          <span className="text-gray-800 font-medium">
+                            {course.trainer}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {course.mode && (
                       <div className="flex items-start">
-                        <Monitor size={16} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                        <Monitor
+                          size={16}
+                          className="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                        />
                         <div>
-                          <span className="text-gray-500 block text-xs">Mode</span>
-                          <span className="text-gray-800 font-medium">{course.mode}</span>
+                          <span className="text-gray-500 block text-xs">
+                            Mode
+                          </span>
+                          <span className="text-gray-800 font-medium">
+                            {course.mode}
+                          </span>
                         </div>
                       </div>
                     )}
 
                     {course.startDate && (
                       <div className="flex items-start">
-                        <Calendar size={16} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                        <Calendar
+                          size={16}
+                          className="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                        />
                         <div>
-                          <span className="text-gray-500 block text-xs">Duration</span>
+                          <span className="text-gray-500 block text-xs">
+                            Duration
+                          </span>
                           <span className="text-gray-800 font-medium">
-                            {format(new Date(course.startDate), 'MMM d, yyyy')}
-                            {course.endDate && ` - ${format(new Date(course.endDate), 'MMM d, yyyy')}`}
+                            {format(new Date(course.startDate), "MMM d, yyyy")}
+                            {course.endDate &&
+                              ` - ${format(
+                                new Date(course.endDate),
+                                "MMM d, yyyy"
+                              )}`}
                           </span>
                         </div>
                       </div>
@@ -419,10 +565,17 @@ const EmployeeProgress = () => {
 
                     {course.durationHours && (
                       <div className="flex items-start">
-                        <Clock size={16} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                        <Clock
+                          size={16}
+                          className="text-gray-400 mt-0.5 mr-2 flex-shrink-0"
+                        />
                         <div>
-                          <span className="text-gray-500 block text-xs">Hours</span>
-                          <span className="text-gray-800 font-medium">{course.durationHours} hours</span>
+                          <span className="text-gray-500 block text-xs">
+                            Hours
+                          </span>
+                          <span className="text-gray-800 font-medium">
+                            {course.durationHours} hours
+                          </span>
                         </div>
                       </div>
                     )}
@@ -435,9 +588,13 @@ const EmployeeProgress = () => {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === 'Completed' ? 'bg-emerald-500' :
-                          registration.status === 'In Progress' ? 'bg-amber-500' :
-                            registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === "Completed"
+                            ? "bg-emerald-500"
+                            : registration.status === "In Progress"
+                              ? "bg-amber-500"
+                              : registration.status === "Dropped"
+                                ? "bg-rose-500"
+                                : "bg-indigo-500"
                           }`}
                         style={{ width: `${progressPercentage}%` }}
                       ></div>
@@ -447,8 +604,14 @@ const EmployeeProgress = () => {
 
                 <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-between items-center">
                   {daysRemaining > 0 ? (
-                    <span className={`text-sm ${daysRemaining < 7 ? 'text-amber-600 font-medium' : 'text-gray-600'}`}>
-                      <span className="font-medium">{daysRemaining}</span> days remaining
+                    <span
+                      className={`text-sm ${daysRemaining < 7
+                          ? "text-amber-600 font-medium"
+                          : "text-gray-600"
+                        }`}
+                    >
+                      <span className="font-medium">{daysRemaining}</span> days
+                      remaining
                     </span>
                   ) : (
                     <span className="text-sm text-gray-600">Course ended</span>
@@ -465,7 +628,12 @@ const EmployeeProgress = () => {
                   </div>
                   <div>
                     <button
-                      onClick={() => handleUnregister(registration.registrationId, registration.programId)}
+                      onClick={() =>
+                        handleUnregister(
+                          registration.registrationId,
+                          registration.programId
+                        )
+                      }
                       className="text-rose-600 hover:text-rose-800 transition-colors duration-150 flex items-center text-sm"
                       title="Unregister from course"
                     >
@@ -483,20 +651,37 @@ const EmployeeProgress = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trainer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Course
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trainer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Duration
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Progress
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRegistrations.map(registration => {
+                {filteredRegistrations.map((registration) => {
                   const course = courses[registration.programId] || {};
-                  const progressPercentage = course.startDate && course.endDate
-                    ? calculateProgress(course.startDate, course.endDate, registration.status)
-                    : statusConfig[registration.status]?.progress || 0;
+                  const progressPercentage =
+                    course.startDate && course.endDate
+                      ? calculateProgress(
+                        course.startDate,
+                        course.endDate,
+                        registration.status
+                      )
+                      : statusConfig[registration.status]?.progress || 0;
 
                   return (
                     <tr
@@ -504,11 +689,21 @@ const EmployeeProgress = () => {
                       className="hover:bg-gray-50 transition-colors duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{course.title || "Unknown Course"}</div>
-                        {course.mode && <div className="text-xs text-gray-500">{course.mode}</div>}
+                        <div className="text-sm font-medium text-gray-900">
+                          {course.title || "Unknown Course"}
+                        </div>
+                        {course.mode && (
+                          <div className="text-xs text-gray-500">
+                            {course.mode}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center w-fit border ${statusConfig[registration.status]?.color || 'bg-gray-100'}`}>
+                        <span
+                          className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center w-fit border ${statusConfig[registration.status]?.color ||
+                            "bg-gray-100"
+                            }`}
+                        >
                           {statusConfig[registration.status]?.icon}
                           {registration.status}
                         </span>
@@ -519,10 +714,25 @@ const EmployeeProgress = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {course.startDate ? (
                           <div>
-                            <div>{format(new Date(course.startDate), 'MMM d, yyyy')}</div>
-                            {course.endDate && <div className="text-xs">to {format(new Date(course.endDate), 'MMM d, yyyy')}</div>}
+                            <div>
+                              {format(
+                                new Date(course.startDate),
+                                "MMM d, yyyy"
+                              )}
+                            </div>
+                            {course.endDate && (
+                              <div className="text-xs">
+                                to{" "}
+                                {format(
+                                  new Date(course.endDate),
+                                  "MMM d, yyyy"
+                                )}
+                              </div>
+                            )}
                           </div>
-                        ) : "-"}
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-32">
@@ -531,9 +741,13 @@ const EmployeeProgress = () => {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === 'Completed' ? 'bg-emerald-500' :
-                                registration.status === 'In Progress' ? 'bg-amber-500' :
-                                  registration.status === 'Dropped' ? 'bg-rose-500' : 'bg-indigo-500'
+                              className={`h-full rounded-full transition-all duration-1000 ease-out ${registration.status === "Completed"
+                                  ? "bg-emerald-500"
+                                  : registration.status === "In Progress"
+                                    ? "bg-amber-500"
+                                    : registration.status === "Dropped"
+                                      ? "bg-rose-500"
+                                      : "bg-indigo-500"
                                 }`}
                               style={{ width: `${progressPercentage}%` }}
                             ></div>
@@ -542,13 +756,20 @@ const EmployeeProgress = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                         <button
-                          onClick={() => handleViewDetails(registration.programId)}
+                          onClick={() =>
+                            handleViewDetails(registration.programId)
+                          }
                           className="text-indigo-600 hover:text-indigo-900 transition-colors duration-150"
                         >
                           View Details
                         </button>
                         <button
-                          onClick={() => handleUnregister(registration.registrationId, registration.programId)}
+                          onClick={() =>
+                            handleUnregister(
+                              registration.registrationId,
+                              registration.programId
+                            )
+                          }
                           className="text-rose-600 hover:text-rose-800 transition-colors duration-150"
                         >
                           Unregister

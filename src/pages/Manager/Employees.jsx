@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { Search, Filter, RefreshCw, ChevronDown, ChevronUp, User, Mail, Briefcase, AlertCircle, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import EmployeeProgress from './EmployeeProgress';
 
 const ManagerEmployees = () => {
@@ -14,7 +13,6 @@ const ManagerEmployees = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const navigate = useNavigate();
 
   const fetchEmployees = () => {
     setLoading(true);
@@ -26,14 +24,14 @@ const ManagerEmployees = () => {
           if (response.data.length > 0 && user === response.data[0]) {
             console.log('Sample user object:', user);
           }
-          
+
           return (
             (user.role && user.role.toLowerCase() === 'employee') ||
             (user.userRole && user.userRole.toLowerCase() === 'employee') ||
             (user.userType && user.userType.toLowerCase() === 'employee')
           );
         });
-        
+
         console.log('Filtered employees:', employeeRoleOnly);
         setEmployees(employeeRoleOnly);
         setLoading(false);
@@ -76,11 +74,11 @@ const ManagerEmployees = () => {
   const departments = ['All', ...new Set(employees.map(emp => emp.department))];
 
   const filteredEmployees = employees
-    .filter(emp => 
+    .filter(emp =>
       (selectedDepartment === 'All' || emp.department === selectedDepartment) &&
-      (emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       emp.department.toLowerCase().includes(searchTerm.toLowerCase()))
+      (emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.department.toLowerCase().includes(searchTerm.toLowerCase()))
     )
     .sort((a, b) => {
       if (sortDirection === 'asc') {
@@ -102,7 +100,7 @@ const ManagerEmployees = () => {
           <User className="mr-2 text-indigo-600" />
           Manager - Employee Progress
         </h2>
-        <button 
+        <button
           onClick={handleRefresh}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors duration-300"
         >
@@ -145,7 +143,7 @@ const ManagerEmployees = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th 
+                <th
                   onClick={() => handleSort('fullName')}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                 >
@@ -155,7 +153,7 @@ const ManagerEmployees = () => {
                     {getSortIcon('fullName')}
                   </div>
                 </th>
-                <th 
+                <th
                   onClick={() => handleSort('email')}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                 >
@@ -165,7 +163,7 @@ const ManagerEmployees = () => {
                     {getSortIcon('email')}
                   </div>
                 </th>
-                <th 
+                <th
                   onClick={() => handleSort('department')}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200"
                 >
@@ -180,8 +178,8 @@ const ManagerEmployees = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEmployees.length > 0 ? (
                 filteredEmployees.map((emp, index) => (
-                  <tr 
-                    key={emp.id} 
+                  <tr
+                    key={emp.id}
                     onClick={() => handleRowClick(emp.userId)}
                     className="hover:bg-indigo-50 transition-colors duration-150 cursor-pointer group"
                     style={{
@@ -213,17 +211,17 @@ const ManagerEmployees = () => {
           </table>
         </div>
       )}
-      
+
       <div className="mt-4 text-right text-sm text-gray-500">
         Showing {filteredEmployees.length} of {employees.length} employees
       </div>
-      
+
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-start justify-center p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 z-40 flex items-start justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-screen overflow-auto">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="font-bold text-lg text-gray-800">Employee Progress</h3>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
               >
@@ -236,7 +234,7 @@ const ManagerEmployees = () => {
           </div>
         </div>
       )}
-      
+
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
