@@ -49,8 +49,8 @@ const Login = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
       <div
         className={`mb-10 text-center transform transition-all duration-1000 ${animateTitle
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 -translate-y-12"
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-12"
           }`}
       >
         <div className="flex items-center justify-center mb-4">
@@ -95,7 +95,6 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {/* Fix: Use the error state value instead of the action creator */}
             {error && (
               <div
                 className="bg-red-50 text-red-600 p-4 rounded-md text-sm border-l-4 border-red-500"

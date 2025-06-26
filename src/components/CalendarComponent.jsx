@@ -113,8 +113,8 @@ const CalendarComponent = () => {
         dispatch(
           setError(
             err.response?.data?.message ||
-              err.message ||
-              "Failed to fetch events"
+            err.message ||
+            "Failed to fetch events"
           )
         );
         console.error("Error fetching events:", err);
@@ -453,9 +453,9 @@ We apologize for any inconvenience this may cause.`;
           dispatch(
             setError(
               "Event was deleted but failed to send cancellation emails: " +
-                (emailError.response?.data?.message ||
-                  emailError.message ||
-                  "Unknown error")
+              (emailError.response?.data?.message ||
+                emailError.message ||
+                "Unknown error")
             )
           );
         }
@@ -490,8 +490,8 @@ We apologize for any inconvenience this may cause.`;
         ? 0
         : selectedHour
       : selectedHour === 12
-      ? 12
-      : selectedHour + 12;
+        ? 12
+        : selectedHour + 12;
     const formattedTime = `${String(hours).padStart(2, "0")}:${String(
       selectedMinute
     ).padStart(2, "0")}`;
@@ -538,11 +538,10 @@ We apologize for any inconvenience this may cause.`;
                 return (
                   <button
                     key={`hour-${hour}`}
-                    className={`absolute w-7 h-7 flex items-center justify-center rounded-full transition-all ${
-                      selectedHour === hour
+                    className={`absolute w-7 h-7 flex items-center justify-center rounded-full transition-all ${selectedHour === hour
                         ? "bg-purple-600 text-white"
                         : "hover:bg-purple-100 text-purple-800"
-                    }`}
+                      }`}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -565,11 +564,10 @@ We apologize for any inconvenience this may cause.`;
                 return (
                   <button
                     key={`minute-${minute}`}
-                    className={`absolute w-6 h-6 flex items-center justify-center rounded-full text-xs transition-all ${
-                      selectedMinute === minute
+                    className={`absolute w-6 h-6 flex items-center justify-center rounded-full text-xs transition-all ${selectedMinute === minute
                         ? "bg-indigo-600 text-white"
                         : "hover:bg-indigo-100 text-indigo-800"
-                    }`}
+                      }`}
                     style={{
                       left: `${x}%`,
                       top: `${y}%`,
@@ -590,17 +588,15 @@ We apologize for any inconvenience this may cause.`;
 
           <div className="flex justify-center space-x-4 mb-4">
             <button
-              className={`px-4 py-2 rounded-lg ${
-                isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-lg ${isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => dispatch(setClockTime({ isAM: true }))}
             >
               AM
             </button>
             <button
-              className={`px-4 py-2 rounded-lg ${
-                !isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-lg ${!isAM ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => dispatch(setClockTime({ isAM: false }))}
             >
               PM
@@ -653,23 +649,20 @@ We apologize for any inconvenience this may cause.`;
       days.push(
         <div
           key={day}
-          className={`h-32 border border-purple-200 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-purple-300 ${
-            isToday
+          className={`h-32 border border-purple-200 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-purple-300 ${isToday
               ? "bg-purple-50 border-purple-400"
               : "bg-white hover:bg-purple-25"
-          }`}
+            }`}
           onClick={() => handleDateClick(day)}
         >
           <div className="h-full flex flex-col">
             <div
-              className={`p-2 border-b border-purple-100 ${
-                isToday ? "bg-purple-100" : "bg-gray-50"
-              }`}
+              className={`p-2 border-b border-purple-100 ${isToday ? "bg-purple-100" : "bg-gray-50"
+                }`}
             >
               <span
-                className={`text-sm font-semibold ${
-                  isToday ? "text-purple-800" : "text-gray-700"
-                }`}
+                className={`text-sm font-semibold ${isToday ? "text-purple-800" : "text-gray-700"
+                  }`}
               >
                 {day}
               </span>
@@ -1115,20 +1108,6 @@ We apologize for any inconvenience this may cause.`;
                   className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ending Date
-                </label>
-                <input
-                  type="date"
-                  value={endingDate}
-                  onChange={(e) =>
-                    dispatch(updateEventForm({ endingDate: e.target.value }))
-                  }
-                  min={selectedDate}
-                  className="w-full px-4 py-3 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
-              </div> */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
