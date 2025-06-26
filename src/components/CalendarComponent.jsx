@@ -140,43 +140,6 @@ const CalendarComponent = () => {
     }
   };
 
-  const fetchEvents = async () => {
-    dispatch(setLoading(true));
-    dispatch(setError(null));
-
-    try {
-      const response = await api.get("/Calendars");
-
-      const normalizedEvents = response.data.map((event) => ({
-        id: event.id,
-        title: event.meetingName || "Untitled Event",
-        date: event.startingDate || normalizeDate(event.time),
-        time: event.time ? extractTimeFromDateTime(event.time) : "00:00",
-        endTime: event.endTime
-          ? extractTimeFromDateTime(event.endTime)
-          : "00:00",
-        meetingLink: event.teamsLink || "",
-        trainer: event.trainer || "",
-        organiser: event.organiser || "",
-        venue: event.venue || "",
-        endingDate:
-          event.endingDate || event.startingDate || normalizeDate(event.time),
-        rawData: event,
-      }));
-
-      dispatch(setEvents(normalizedEvents));
-    } catch (err) {
-      dispatch(
-        setError(
-          err.response?.data?.message || err.message || "Failed to fetch events"
-        )
-      );
-      console.error("Error fetching events:", err);
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
-
   const normalizeDate = (dateStr) => {
     if (!dateStr) return null;
 
