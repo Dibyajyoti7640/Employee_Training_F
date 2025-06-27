@@ -17,25 +17,7 @@ import {
   MapPin,
   Award,
 } from "lucide-react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from "chart.js";
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
+
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -522,11 +504,10 @@ const AdminEmployees = () => {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
-            notification.type === "success"
-              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-              : "bg-red-100 text-red-800 border-l-4 border-red-500"
-          }`}
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${notification.type === "success"
+            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+            : "bg-red-100 text-red-800 border-l-4 border-red-500"
+            }`}
         >
           {notification.type === "success" ? (
             <CheckCircle className="mr-2 h-5 w-5" />
@@ -599,8 +580,8 @@ const AdminEmployees = () => {
                           style={{
                             backgroundColor: getRandomPastelColor(
                               employeeDetails?.email ||
-                                employeeDetails?.fullName ||
-                                "default"
+                              employeeDetails?.fullName ||
+                              "default"
                             ),
                           }}
                         >
@@ -644,7 +625,7 @@ const AdminEmployees = () => {
                     </div>
 
                     {employeeDetails.programList &&
-                    employeeDetails.programList.length > 0 ? (
+                      employeeDetails.programList.length > 0 ? (
                       <div className="space-y-3">
                         {employeeDetails.programList.map((program, index) => (
                           <div
@@ -689,7 +670,7 @@ const AdminEmployees = () => {
                     </div>
 
                     {employeeDetails.certficateList &&
-                    employeeDetails.certficateList.length > 0 ? (
+                      employeeDetails.certficateList.length > 0 ? (
                       <div className="space-y-4">
                         {employeeDetails.certficateList.map((certificate) => (
                           <div
@@ -874,7 +855,7 @@ const AdminEmployees = () => {
                 <select
                   name="department"
                   value={addEmployeeData.department}
-                  onChange={handleAddEmployee}
+                  onChange={handleAddInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors duration-300"
                   required
                 >
@@ -911,11 +892,10 @@ const AdminEmployees = () => {
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={passwordErrors.length > 0}
-              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${
-                passwordErrors.length > 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-green-700"
-              }`}
+              className={`mt-6 px-6 py-2 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-300 ${passwordErrors.length > 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 text-white hover:bg-green-700"
+                }`}
             >
               Register Employee
             </motion.button>
