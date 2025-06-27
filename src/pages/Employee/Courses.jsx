@@ -27,7 +27,6 @@ const EmployeeCourses = () => {
   const [viewLayout, setViewLayout] = useState("grid");
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [categories, setCategories] = useState([]);
-  const { user } = useSelector((state) => state.auth);
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   const [stats, setStats] = useState({
@@ -35,6 +34,11 @@ const EmployeeCourses = () => {
     inProgress: 0,
     certificates: 0,
   });
+  const [showCertificatesModal, setShowCertificatesModal] = useState(false);
+  const [certificatesList, setCertificatesList] = useState([]);
+  const [certificatesLoading, setCertificatesLoading] = useState(false);
+  const [certificatesError, setCertificatesError] = useState(null);
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const predefinedCategories = [
@@ -225,6 +229,29 @@ const EmployeeCourses = () => {
   const getCourseStatusForDisplay = (course) => {
     return getCourseStatus(course);
   };
+
+  // Fetch certificates when modal is opened
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      if (!showCertificatesModal || !user?.userId) return;
+      setCertificatesLoading(true);
+      setCertificatesError(null);
+      try {
+        const res = await api.get(`/Certificates/${user.userId}`);
+        console.log("Certificates response:", res.data);
+        // Only show approved certificates
+        const approved = (res.data || []).filter(cert => cert.status === "Approved");
+        console.log("Approved certificates:", approved);
+        setCertificatesList(approved);
+      } catch (err) {
+        setCertificatesError("Failed to load certificates.");
+        setCertificatesList([]);
+      } finally {
+        setCertificatesLoading(false);
+      }
+    };
+    fetchCertificates();
+  }, [showCertificatesModal, user?.userId]);
 
   if (!isLoading && !user) {
     return <Navigate to="/login" />;
@@ -505,6 +532,7 @@ const EmployeeCourses = () => {
               animation: "slideUp 0.5s ease-out 0.3s both",
             }}
           >
+            {/* Completed Button */}
             <button
               onClick={() => handleStatusFilter("completed")}
               className={`bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selectedStatus === "completed"
@@ -527,6 +555,7 @@ const EmployeeCourses = () => {
               </div>
             </button>
 
+            {/* In Progress Button */}
             <button
               onClick={() => handleStatusFilter("in_progress")}
               className={`bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${selectedStatus === "in_progress"
@@ -549,18 +578,21 @@ const EmployeeCourses = () => {
               </div>
             </button>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105">
+            {/* Certificates Button */}
+            <button
+              onClick={() => setShowCertificatesModal(true)}
+              className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg flex items-center transform transition-all duration-300 hover:scale-105 hover:shadow-lg text-left w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+            >
               <div className="bg-green-200 rounded-full p-3 mr-4">
                 <CheckCircle size={24} className="text-green-700" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-green-900">
-                  {stats.certificates} Certificates
+                  Certifications
                 </h3>
-
-                <p className="text-sm text-green-700">Earned so far</p>
+                <p className="text-sm text-green-700">Done so far</p>
               </div>
-            </div>
+            </button>
           </div>
 
           {selectedStatus !== "all" && (
@@ -722,6 +754,49 @@ const EmployeeCourses = () => {
           )}
         </div>
       </div>
+
+      {/* Certificates Modal */}
+      {showCertificatesModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          onClick={e => e.target === e.currentTarget && setShowCertificatesModal(false)}
+        >
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowCertificatesModal(false)}
+              aria-label="Close"
+            >
+              <X size={22} />
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-green-800 flex items-center gap-2">
+              <CheckCircle size={20} className="text-green-600" />
+              My Certificates
+            </h2>
+            {certificatesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              </div>
+            ) : certificatesError ? (
+              <div className="text-red-500 text-center py-4">{certificatesError}</div>
+            ) : certificatesList.length === 0 ? (
+              <div className="text-gray-500 text-center py-4">No approved certificates found.</div>
+            ) : (
+              <ul className="space-y-2 max-h-60 overflow-y-auto">
+                {certificatesList.map(cert => (
+                  <li
+                    key={cert.certificateId || cert.id}
+                    className="px-4 py-2 rounded bg-green-50 text-green-900 font-medium"
+                  >
+                    {cert.id + " : "}
+                    {cert.title || "Certificate"}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes fadeIn {

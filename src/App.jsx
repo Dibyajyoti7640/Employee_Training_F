@@ -29,6 +29,7 @@ import EmployeeCertificates from "./pages/Employee/EmployeeCertificates";
 import { initializeAuth } from "./Slices/AuthSlice";
 import CalendarComponent from "./components/CalendarComponent";
 import { useDispatch, useSelector } from "react-redux";
+import AdolfKitlerBot from "./components/ChatBot";
 
 function App() {
   const dispatch = useDispatch();
@@ -204,7 +205,7 @@ function App() {
         />
         <Route path="calendar" element={<CalendarComponent />} />
       </Route>
-
+      <Route path="/adolfkitler" element={<AdolfKitlerBot />} />
     </Routes>
   );
 }
